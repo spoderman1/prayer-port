@@ -1,0 +1,1748 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lantern — a salah-centered companion for your day</title>
+<!-- BRAND NAME PLACEHOLDER: "Lantern" is a working name only, unresolved per spec §0. Swap in one place: search "BRAND_NAME" below. -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,400;0,500;0,600;1,400&family=Hanken+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --asr-sky-top:#E5CD96; --asr-sky-mid:#E9B96B; --asr-sky-low:#DCA85C; --asr-ground:#B98E5C;
+    --maghrib-top:#5E4C6E; --maghrib-mid:#C4694A; --maghrib-low:#E8A36C; --maghrib-ground:#6E4A3E;
+    --isha-top:#1F2438; --isha-mid:#2E3450; --isha-low:#3C4566; --isha-ground:#23283C;
+    --fajr-top:#343B5C; --fajr-mid:#67769F; --fajr-low:#C7A3A6; --fajr-ground:#4A4458;
+    --dhuhr-top:#CFE0E2; --dhuhr-mid:#EFE8D2; --dhuhr-low:#F6EFDC; --dhuhr-ground:#D8C49A;
+    --lantern:#E8B85C; --sun:#F6E2B4;
+
+    /* Warm sunrise hero treatment — distinct from --fajr-* (which is deliberately cool/pre-dawn).
+       Added for the Kaabah hero's explicit "warm tones / traditional sunrise" requirement. */
+    --sunrise-top:#F3D9B1; --sunrise-mid:#EFAE6E; --sunrise-horizon:#E8835C; --sunrise-glow:#FFF1D6;
+
+    --paper:#F6EFDC; --paper-deep:#EFE8D2; --clay:#C9A77D; --clay-line:#B89572;
+    --ink:#3A3228; --ink-soft:#6B5E4D;
+    --teal:#1E5F63; --lapis:#28407A; --madder:#A8442E; --gold:#C99A3A;
+
+    --serif: "Fraunces", Georgia, serif;
+    --sans: "Hanken Grotesk", system-ui, sans-serif;
+  }
+
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  @media (prefers-reduced-motion: reduce){ html{scroll-behavior:auto;} }
+
+  body{
+    margin:0;
+    font-family:var(--sans);
+    color:var(--ink);
+    background:var(--paper);
+    line-height:1.5;
+  }
+
+  h1,h2,h3{ font-family:var(--serif); font-weight:600; margin:0 0 .5em; }
+  p{ margin:0 0 1em; }
+  a{ color:inherit; }
+  button{ font-family:var(--sans); cursor:pointer; }
+
+  :focus-visible{
+    outline:3px solid var(--gold);
+    outline-offset:3px;
+  }
+
+  .visually-hidden{
+    position:absolute; width:1px; height:1px; padding:0; margin:-1px;
+    overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0;
+  }
+
+  /* ---------- layout shells ---------- */
+  .wrap{ max-width:1080px; margin:0 auto; padding:0 24px; }
+  section{ position:relative; padding:120px 0; overflow:hidden; }
+
+  /* ---------- masthead ---------- */
+  .masthead{
+    position:relative;
+    z-index:5;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:20px 24px;
+    background:var(--paper);
+    border-bottom:1px solid var(--clay-line);
+  }
+  .masthead .wordmark{
+    font-family:var(--serif);
+    font-size:1.3rem;
+    font-weight:600;
+    letter-spacing:.01em;
+  }
+  .masthead .tagline{
+    font-size:.85rem;
+    color:var(--ink-soft);
+    display:none;
+  }
+  @media (min-width:640px){ .masthead .tagline{ display:block; } }
+
+  /* ---------- hero ---------- */
+  .hero{
+    min-height:100vh;
+    display:flex;
+    align-items:flex-end;
+    background:linear-gradient(180deg, var(--sunrise-top) 0%, var(--sunrise-mid) 75%, var(--sunrise-horizon) 100%);
+    padding-top:80px;
+    padding-bottom:96px;
+    color:var(--ink);
+  }
+  .hero .wrap{ position:relative; z-index:3; text-align:center; margin:0 auto; }
+  .hero h1{
+    font-size:clamp(1.7rem, 4vw, 2.6rem);
+    font-style:italic;
+    max-width:24ch;
+    margin:0 auto .4em;
+  }
+  .hero .verse-citation{
+    font-size:.85rem;
+    letter-spacing:.04em;
+    text-transform:uppercase;
+    color:var(--ink-soft);
+    margin-bottom:1.4em;
+  }
+  .hero .sub{ font-size:1.15rem; max-width:46ch; color:var(--ink-soft); margin-left:auto; margin-right:auto; }
+  .cta-row{ display:flex; gap:16px; flex-wrap:wrap; margin-top:28px; justify-content:center; }
+
+  .btn{
+    display:inline-flex; align-items:center; gap:8px;
+    padding:14px 26px;
+    border-radius:999px;
+    border:1px solid transparent;
+    font-size:1rem; font-weight:600;
+    text-decoration:none;
+    transition:transform .15s ease, box-shadow .15s ease;
+  }
+  @media (prefers-reduced-motion: reduce){ .btn{ transition:none; } }
+  .btn:hover{ transform:translateY(-1px); }
+  .btn-primary{ background:var(--madder); color:var(--paper); box-shadow:0 8px 20px rgba(168,68,46,.35); }
+  .btn-secondary{ background:transparent; border-color:var(--ink); color:var(--ink); }
+  .btn-ghost{ background:rgba(255,255,255,.5); border-color:var(--clay-line); color:var(--ink); }
+
+  /* ---------- problem — Dhuhr (bright midday) ---------- */
+  .problem{
+    background:linear-gradient(180deg, var(--sunrise-horizon) 0%, var(--dhuhr-top) 38%, var(--dhuhr-mid) 62%, var(--dhuhr-low) 84%, var(--dhuhr-ground) 100%);
+    color:var(--ink);
+  }
+  .problem h2{ font-size:clamp(1.8rem,4vw,2.6rem); max-width:18ch; color:var(--ink); }
+  .problem .sub{ max-width:52ch; color:var(--ink-soft); font-size:1.1rem; }
+  .skeleton-row{
+    margin-top:48px;
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+    gap:20px;
+  }
+  .skeleton-card{
+    background:rgba(255,255,255,.4);
+    border:1px solid rgba(60,40,10,.14);
+    border-radius:16px;
+    padding:22px;
+  }
+  .skeleton-card h3{ color:var(--ink); font-size:1.05rem; }
+  .skeleton-card p{ color:var(--ink-soft); font-size:.92rem; margin:0; }
+
+  /* ---------- loop — Asr (warm, intensifying gold) ---------- */
+  .loop{
+    background:linear-gradient(180deg, var(--dhuhr-ground) 0%, var(--asr-sky-top) 38%, var(--asr-sky-mid) 62%, var(--asr-sky-low) 84%, var(--asr-ground) 100%);
+    color:var(--ink);
+  }
+  .loop h2{ color:var(--ink); font-size:clamp(1.8rem,4vw,2.6rem); max-width:16ch; }
+  .loop-grid{
+    margin-top:48px;
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+    gap:24px;
+  }
+  .loop-step{
+    background:rgba(255,255,255,.32);
+    border:1px solid rgba(60,40,10,.16);
+    border-radius:18px;
+    padding:26px;
+  }
+  .loop-step .num{
+    font-family:var(--serif);
+    font-size:.85rem;
+    color:var(--madder);
+    letter-spacing:.08em;
+    text-transform:uppercase;
+  }
+  .loop-step h3{ color:var(--ink); margin-top:10px; font-size:1.2rem; }
+  .loop-step p{ color:var(--ink-soft); font-size:.95rem; margin:0; }
+
+  /* ---------- intention — Maghrib (deep sunset) ---------- */
+  .intention{
+    background:linear-gradient(180deg, var(--asr-ground) 0%, var(--maghrib-top) 38%, var(--maghrib-mid) 62%, var(--maghrib-low) 84%, var(--maghrib-ground) 100%);
+    color:var(--paper);
+  }
+  .intention h2{ font-size:clamp(1.8rem,4vw,2.6rem); max-width:18ch; color:var(--paper); }
+  .intention .sub{ max-width:50ch; color:rgba(246,239,220,.85); font-size:1.1rem; }
+
+  .chip{
+    border:1px solid var(--clay-line);
+    background:var(--paper);
+    border-radius:999px;
+    padding:8px 16px;
+    font-size:.88rem;
+    color:var(--ink);
+  }
+  .chip.active{ background:var(--teal); color:var(--paper); border-color:var(--teal); }
+
+  /* ---------- intention demo: scripted autoplay teaser ----------
+     Decorative only (aria-hidden) — shows visitors how planning a
+     day works without requiring them to do anything. The real,
+     fully operable version is the modal below (button + script
+     further down the page). */
+  .demo{
+    position:relative;
+    margin-top:40px;
+    background:var(--paper-deep);
+    border:1px solid var(--clay-line);
+    border-radius:20px;
+    padding:28px;
+    max-width:640px;
+    box-shadow:0 10px 26px rgba(0,0,0,.18);
+    color:var(--ink);
+  }
+  .demo-pills{ display:flex; gap:10px; flex-wrap:wrap; margin-bottom:24px; }
+  .demo-pill{
+    background:var(--paper);
+    border:1px solid var(--clay-line);
+    border-radius:999px;
+    padding:9px 18px;
+    font-size:.9rem;
+    font-weight:600;
+    color:var(--ink);
+    transition:background .2s ease, color .2s ease, transform .2s ease, opacity .3s ease;
+  }
+  .demo-pill.picked{ background:var(--gold); color:var(--paper); transform:scale(1.06); }
+  .demo-pill.placed{ opacity:.32; }
+
+  .demo-timeline{
+    position:relative;
+    height:64px;
+    background:linear-gradient(180deg, var(--paper), var(--paper-deep));
+    border:1px solid var(--clay-line);
+    border-radius:12px;
+  }
+  .demo-tick{
+    position:absolute; bottom:-22px;
+    transform:translateX(-50%);
+    font-size:.68rem;
+    color:var(--ink-soft);
+  }
+  .demo-window{
+    position:absolute; top:0; bottom:0; left:0;
+    width:0;
+    background:rgba(76,154,106,.38);
+    border:1.5px solid #4C9A6A;
+    border-radius:8px;
+    opacity:0;
+    transition:opacity .3s ease;
+    pointer-events:none;
+  }
+  .demo-selection{
+    position:absolute; top:0; bottom:0; left:0;
+    width:0;
+    background:rgba(201,154,58,.3);
+    border:1.5px dashed var(--gold);
+    border-radius:6px;
+    display:none;
+    pointer-events:none;
+  }
+  .demo-selection.tagged{ background:rgba(201,154,58,.45); border-style:solid; }
+  .demo-placed{
+    position:absolute; top:50%; left:0;
+    transform:translate(-50%,-50%);
+    display:none;
+    flex-direction:column;
+    align-items:center;
+    gap:3px;
+    pointer-events:none;
+  }
+  .demo-placed-label{
+    background:var(--ink); color:var(--paper);
+    border-radius:999px; padding:3px 10px; font-size:.7rem; font-weight:700; white-space:nowrap;
+  }
+  .demo-placed-time{ font-size:.66rem; color:var(--ink); background:rgba(255,255,255,.85); border-radius:999px; padding:1px 7px; }
+
+  .demo-block-tag{
+    position:absolute; bottom:-22px; left:0;
+    transform:translateX(-50%);
+    display:none;
+    font-size:.7rem; font-weight:700;
+    color:var(--madder);
+    white-space:nowrap;
+  }
+
+  .demo-quickpicks{
+    display:flex; gap:8px; flex-wrap:wrap;
+    margin-top:34px;
+    opacity:.3;
+    transition:opacity .3s ease;
+  }
+  .demo-quickpicks.active{ opacity:1; }
+  .demo-qp{
+    border:1px solid var(--clay-line);
+    background:var(--paper);
+    border-radius:999px;
+    padding:6px 14px;
+    font-size:.82rem;
+    color:var(--ink);
+    transition:background .2s ease, color .2s ease;
+  }
+  .demo-qp.chosen{ background:var(--teal); color:var(--paper); border-color:var(--teal); }
+
+  .demo-cursor{
+    position:absolute; top:0; left:0;
+    width:22px; height:22px;
+    opacity:0;
+    pointer-events:none;
+    z-index:5;
+    transition:opacity .3s ease, transform .15s ease;
+    filter:drop-shadow(0 2px 4px rgba(0,0,0,.35));
+  }
+  .demo-cursor.clicking{ transform:scale(.7); }
+
+  .demo-caption{
+    margin-top:20px; margin-bottom:0;
+    font-size:.82rem;
+    color:var(--ink-soft);
+    font-style:italic;
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .demo-pill, .demo-window, .demo-selection, .demo-quickpicks, .demo-cursor{ transition:none; }
+  }
+
+  .modal-trigger-row{ margin-top:36px; }
+
+  /* ---------- founding ---------- */
+  .founding{
+    background:radial-gradient(ellipse at 80% 20%, rgba(232,184,92,.18), transparent 55%),
+                linear-gradient(180deg, var(--maghrib-ground) 0%, var(--isha-top) 40%, var(--isha-mid) 70%, var(--isha-ground) 100%);
+    color:var(--paper);
+  }
+  .founding h2{ color:var(--paper); font-size:clamp(1.8rem,4vw,2.6rem); max-width:16ch; }
+  .founding .sub{ color:rgba(246,239,220,.8); max-width:50ch; font-size:1.1rem; }
+  .star-field{
+    position:absolute; inset:0;
+    width:100%; height:100%;
+    pointer-events:none;
+  }
+  .twinkle-star{ animation:star-twinkle 3.6s ease-in-out infinite; }
+  .twinkle-star-b{ animation-delay:1.1s; }
+  .twinkle-star-c{ animation-delay:2.2s; }
+  @keyframes star-twinkle{ 0%,100%{ opacity:.4; } 50%{ opacity:1; } }
+  @media (prefers-reduced-motion: reduce){
+    .twinkle-star{ animation:none; opacity:.8; }
+  }
+  .price-row{ display:flex; align-items:baseline; gap:10px; margin:28px 0; }
+  .price{ font-family:var(--serif); font-size:2.6rem; color:var(--lantern); }
+  .price-note{ color:rgba(246,239,220,.6); font-size:.95rem; }
+
+  .platform-row{ display:flex; gap:14px; flex-wrap:wrap; margin-bottom:28px; }
+  .platform-btn{
+    background:rgba(255,255,255,.06);
+    border:1px solid rgba(255,255,255,.2);
+    color:var(--paper);
+    border-radius:12px;
+    padding:14px 22px;
+    font-size:.95rem;
+    font-weight:600;
+  }
+  .platform-btn:hover{ background:rgba(255,255,255,.12); }
+
+  .email-form{
+    display:flex; gap:10px; flex-wrap:wrap;
+    max-width:460px;
+  }
+  .email-form input[type="email"]{
+    flex:1 1 240px;
+    padding:14px 18px;
+    border-radius:999px;
+    border:1px solid rgba(255,255,255,.3);
+    background:rgba(255,255,255,.08);
+    color:var(--paper);
+    font-size:1rem;
+  }
+  .email-form input::placeholder{ color:rgba(246,239,220,.55); }
+  .form-note{ font-size:.82rem; color:rgba(246,239,220,.55); margin-top:10px; }
+
+  /* ---------- footer ---------- */
+  footer{
+    background:var(--isha-ground);
+    color:rgba(246,239,220,.7);
+    padding:56px 0 40px;
+    font-size:.88rem;
+  }
+  footer .wrap{ display:flex; flex-direction:column; gap:14px; }
+  footer .promises{ display:flex; gap:24px; flex-wrap:wrap; list-style:none; padding:0; margin:0 0 18px; }
+  footer .promises li{ font-size:.85rem; }
+  footer .fine-print{ color:rgba(246,239,220,.45); max-width:60ch; }
+
+  /* ---------- scroll-linked Kaabah reminder ---------- */
+  #kaabah-wrap{
+    position:fixed;
+    top:0; left:0;
+    width:160px; height:160px;
+    pointer-events:none;
+    z-index:38;
+    will-change:transform, width, height;
+  }
+  #kaabah-wrap svg{ display:block; width:100%; height:100%; overflow:visible; }
+  #kaabah-wrap .kaabah-halo{ will-change:opacity; }
+  /* Pulse lives on the inner core circle (its own opacity), scroll-fade lives on the
+     .kaabah-halo group (JS sets that opacity directly) — kept separate so the CSS
+     animation and the JS inline style never fight over the same property. */
+  .kaabah-halo-core{ animation:kaabah-pulse 4.5s ease-in-out infinite; transform-origin:124px 128px; }
+  @keyframes kaabah-pulse{ 0%,100%{ opacity:.75; transform:scale(.96); } 50%{ opacity:1; transform:scale(1.04); } }
+  .kaabah-spark{ animation:sun-twinkle 2.8s ease-in-out infinite; transform-origin:150px 38px; }
+  @media (prefers-reduced-motion: reduce){
+    .kaabah-halo-core{ animation:none; }
+    .kaabah-spark{ animation:none; opacity:1; }
+  }
+
+  /* ---------- scroll-linked sun ---------- */
+  #sun-wrap{
+    position:fixed;
+    top:0; left:0;
+    width:100%;
+    height:0;
+    pointer-events:none;
+    z-index:40;
+  }
+  #sun{
+    position:absolute;
+    width:60px; height:60px;
+    will-change:transform, width, height;
+  }
+  #sun svg{ display:block; width:100%; height:100%; overflow:visible; }
+  #sunSpark{ animation:sun-twinkle 2.4s ease-in-out infinite; transform-origin:76px 26px; }
+  @keyframes sun-twinkle{ 0%,100%{ opacity:.65; transform:scale(.85); } 50%{ opacity:1; transform:scale(1); } }
+  @media (prefers-reduced-motion: reduce){
+    #sunSpark{ animation:none; opacity:1; }
+  }
+
+  /* ---------- modal ---------- */
+  .modal-overlay{
+    position:fixed; inset:0;
+    background:rgba(35,26,18,.55);
+    display:none;
+    align-items:center;
+    justify-content:center;
+    z-index:100;
+    padding:20px;
+  }
+  .modal-overlay.open{ display:flex; }
+  .modal{
+    background:var(--paper);
+    background-image:radial-gradient(circle at 1px 1px, rgba(60,40,10,.04) 1px, transparent 0);
+    background-size:14px 14px;
+    border-radius:22px;
+    border:1px solid var(--clay-line);
+    max-width:780px;
+    width:100%;
+    max-height:90vh;
+    overflow-y:auto;
+    padding:32px;
+    box-shadow:0 30px 60px rgba(0,0,0,.4);
+  }
+  .modal-head{ display:flex; justify-content:space-between; align-items:flex-start; gap:16px; }
+  .modal-head h2{ font-size:1.6rem; margin-bottom:4px; }
+  .modal-head .note{ color:var(--ink-soft); font-size:.88rem; margin:0; }
+  .modal-close{
+    background:transparent; border:1px solid var(--clay-line); border-radius:999px;
+    width:36px; height:36px; font-size:1.1rem; color:var(--ink); flex-shrink:0;
+  }
+
+  .tray{
+    margin-top:24px;
+    display:flex; gap:10px; flex-wrap:wrap;
+    padding:16px;
+    background:var(--paper-deep);
+    border:1px dashed var(--clay-line);
+    border-radius:14px;
+    min-height:60px;
+  }
+  .prayer-chip{
+    background:var(--paper);
+    border:1px solid var(--clay-line);
+    border-radius:999px;
+    padding:10px 18px;
+    font-size:.92rem;
+    font-weight:600;
+    color:var(--ink);
+    touch-action:none;
+    user-select:none;
+    position:relative;
+  }
+  .prayer-chip[aria-pressed="true"]{
+    background:var(--gold);
+    color:var(--paper);
+    box-shadow:0 0 0 3px rgba(201,154,58,.3);
+  }
+  .prayer-chip.dragging{ opacity:.5; }
+  .prayer-chip .arabic{ opacity:.65; margin-right:6px; }
+
+  .timeline{
+    margin-top:22px;
+    display:grid;
+    grid-template-columns:repeat(5,1fr);
+    border-radius:16px;
+    overflow:hidden;
+    border:1px solid var(--clay-line);
+    position:relative;
+  }
+  .segment{
+    position:relative;
+    min-height:140px;
+    padding:14px 10px 40px;
+    color:var(--paper);
+    font-size:.78rem;
+  }
+  .segment.fajr{ background:linear-gradient(180deg, var(--fajr-mid), var(--fajr-low)); }
+  .segment.dhuhr{ background:linear-gradient(180deg, var(--dhuhr-top), var(--dhuhr-mid)); color:var(--ink); }
+  .segment.asr{ background:linear-gradient(180deg, var(--asr-sky-mid), var(--asr-sky-low)); color:var(--ink); }
+  .segment.maghrib{ background:linear-gradient(180deg, var(--maghrib-mid), var(--maghrib-low)); }
+  .segment.isha{ background:linear-gradient(180deg, var(--isha-mid), var(--isha-low)); }
+  .segment .seg-label{ font-weight:700; display:block; }
+  .segment .seg-window{ opacity:.8; display:block; margin-top:2px; }
+  .segment.drop-target{ outline:3px solid var(--gold); outline-offset:-3px; }
+  .segment.drop-reject{ outline:3px solid var(--madder); outline-offset:-3px; }
+
+  .placed-chip{
+    position:absolute;
+    bottom:8px;
+    transform:translateX(-50%);
+    background:var(--ink);
+    color:var(--paper);
+    border-radius:999px;
+    padding:5px 10px;
+    font-size:.72rem;
+    font-weight:600;
+    white-space:nowrap;
+  }
+  .placed-time{
+    position:absolute;
+    top:8px;
+    transform:translateX(-50%);
+    background:rgba(0,0,0,.35);
+    border-radius:999px;
+    padding:3px 9px;
+    font-size:.7rem;
+  }
+  .drag-time-ghost{
+    position:absolute;
+    top:8px;
+    background:var(--ink);
+    color:var(--paper);
+    border-radius:999px;
+    padding:3px 9px;
+    font-size:.7rem;
+    transform:translateX(-50%);
+    pointer-events:none;
+  }
+
+  .block-tag-trigger{
+    position:absolute;
+    inset:0;
+    top:auto;
+    height:32px;
+    background:rgba(0,0,0,.12);
+    border:none;
+    color:inherit;
+    font-size:.7rem;
+    cursor:pointer;
+  }
+  .block-tag-trigger:hover{ background:rgba(0,0,0,.22); }
+  .block-quickpicks{
+    margin-top:14px;
+    display:none;
+    flex-wrap:wrap;
+    gap:8px;
+    background:var(--paper-deep);
+    border:1px solid var(--clay-line);
+    border-radius:14px;
+    padding:14px;
+  }
+  .block-quickpicks.open{ display:flex; }
+  .block-quickpicks .qp-label{ width:100%; font-size:.85rem; color:var(--ink-soft); margin-bottom:4px; }
+  .block-label-tag{
+    position:absolute;
+    bottom:30px;
+    transform:translateX(-50%);
+    background:rgba(255,255,255,.85);
+    color:var(--ink);
+    border-radius:999px;
+    padding:3px 9px;
+    font-size:.68rem;
+    font-weight:600;
+  }
+
+  .modal-status{
+    margin-top:20px;
+    font-size:.92rem;
+    color:var(--ink-soft);
+  }
+  .modal-complete{
+    margin-top:18px;
+    padding:18px;
+    background:var(--paper-deep);
+    border:1px solid var(--clay-line);
+    border-radius:14px;
+    font-family:var(--serif);
+    font-size:1.1rem;
+    display:none;
+  }
+  .modal-complete.show{ display:block; }
+
+  .inline-msg{
+    margin-top:10px;
+    font-size:.85rem;
+    color:var(--madder);
+    min-height:1.2em;
+  }
+</style>
+</head>
+<body>
+
+<div id="kaabah-wrap" aria-hidden="true">
+  <!-- PLACEHOLDER KAABAH ART: minimal iconic silhouette — a flat/parallel ("isometric-style")
+       cube: top face + two side faces, all parallel edges, no perspective convergence at all.
+       Earlier passes tried a low-angle converging perspective (first too aggressive — read as a
+       pyramid — then toned down) but that whole approach is dropped now in favor of a plain,
+       unambiguous cube read. No calligraphy attempted on the band (illegible fake Arabic would
+       read as a mistake, not a detail) — geometric ornament marks instead. Swap for commissioned
+       art later; keep the no-faces / no-photorealism rule from the rest of the page. -->
+  <svg viewBox="0 0 240 240" role="img" aria-label="The Kaaba, a reminder to return to prayer">
+    <defs>
+      <radialGradient id="kaabahHaloOuter" cx="50%" cy="55%" r="58%">
+        <stop offset="0%" stop-color="#FFF1D6" stop-opacity="0.55"/>
+        <stop offset="100%" stop-color="#FFF1D6" stop-opacity="0"/>
+      </radialGradient>
+      <radialGradient id="kaabahHaloCore" cx="50%" cy="55%" r="30%">
+        <stop offset="0%" stop-color="#FFFBF2" stop-opacity="0.85"/>
+        <stop offset="100%" stop-color="#FFF1D6" stop-opacity="0"/>
+      </radialGradient>
+      <radialGradient id="kaabahShadow" cx="50%" cy="50%" r="50%">
+        <stop offset="0%" stop-color="#000000" stop-opacity="0.35"/>
+        <stop offset="100%" stop-color="#000000" stop-opacity="0"/>
+      </radialGradient>
+      <linearGradient id="kaabahBandFront" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0%" stop-color="#C99A3A"/>
+        <stop offset="100%" stop-color="#E8C878"/>
+      </linearGradient>
+    </defs>
+
+    <g class="kaabah-halo">
+      <circle cx="124" cy="128" r="145" fill="url(#kaabahHaloOuter)"/>
+      <circle class="kaabah-halo-core" cx="124" cy="128" r="80" fill="url(#kaabahHaloCore)"/>
+    </g>
+
+    <ellipse cx="124" cy="210" rx="78" ry="12" fill="url(#kaabahShadow)"/>
+
+    <!-- top face -->
+    <polygon points="55,82 93,50 193,50 155,82" fill="#34333A"/>
+    <!-- side (right) face, in shadow -->
+    <polygon points="155,82 193,50 193,173 155,205" fill="#100F14"/>
+    <!-- front face -->
+    <rect x="55" y="82" width="100" height="123" fill="#221F26"/>
+
+    <!-- cloth fold texture, parallel to each face's own edges -->
+    <g stroke-width="1" fill="none">
+      <path d="M80,205 L80,82" stroke="#000000" stroke-opacity="0.18"/>
+      <path d="M105,205 L105,82" stroke="#FFFFFF" stroke-opacity="0.08"/>
+      <path d="M130,205 L130,82" stroke="#000000" stroke-opacity="0.16"/>
+      <path d="M168.3,193.8 L168.3,70.8" stroke="#000000" stroke-opacity="0.22"/>
+      <path d="M181.6,182.6 L181.6,59.6" stroke="#000000" stroke-opacity="0.25"/>
+    </g>
+
+    <!-- gold band (hizam) -->
+    <rect x="55" y="110" width="100" height="30" fill="url(#kaabahBandFront)"/>
+    <polygon points="155,110 193,78 193,108 155,140" fill="#9C7327"/>
+    <!-- geometric ornament marks (no calligraphy attempted) -->
+    <g fill="#5C431A" opacity="0.55">
+      <rect x="88" y="118" width="7" height="7" transform="rotate(45 91.5 121.5)"/>
+      <rect x="120" y="118" width="7" height="7" transform="rotate(45 123.5 121.5)"/>
+    </g>
+
+    <rect x="75" y="165" width="30" height="40" fill="#1A1509" stroke="#C99A3A" stroke-width="1.3"/>
+
+    <!-- corner edge highlight, between front and side faces -->
+    <line x1="155" y1="205" x2="155" y2="82" stroke="#F6E2B4" stroke-width="1.4" opacity="0.4"/>
+
+    <path class="kaabah-spark" d="M150,30 L151.6,36.4 L158,38 L151.6,39.6 L150,46 L148.4,39.6 L142,38 L148.4,36.4 Z" fill="#FFF6DE"/>
+  </svg>
+</div>
+<div id="sun-wrap" aria-hidden="true">
+  <div id="sun">
+    <svg viewBox="0 0 100 100" role="img" aria-label="The sun, marking the time of day">
+      <defs>
+        <radialGradient id="sunGlow" cx="50%" cy="50%" r="50%">
+          <stop id="sunGlowStop1" offset="0%" stop-color="#F6E2B4" stop-opacity="0.55"/>
+          <stop id="sunGlowStop2" offset="100%" stop-color="#F6E2B4" stop-opacity="0"/>
+        </radialGradient>
+        <radialGradient id="sunBody" cx="38%" cy="35%" r="68%">
+          <stop id="sunBodyStop1" offset="0%" stop-color="#FFF6DE"/>
+          <stop id="sunBodyStop2" offset="100%" stop-color="#E8B85C"/>
+        </radialGradient>
+        <clipPath id="sunClip"><circle cx="50" cy="50" r="32"/></clipPath>
+      </defs>
+      <circle cx="50" cy="50" r="50" fill="url(#sunGlow)"/>
+      <g id="sunRays" fill="#FFF6DE" opacity="0.55">
+        <path d="M47,18 L53,18 L50,2 Z"/>
+        <path d="M47,18 L53,18 L50,2 Z" transform="rotate(45 50 50)"/>
+        <path d="M47,18 L53,18 L50,2 Z" transform="rotate(90 50 50)"/>
+        <path d="M47,18 L53,18 L50,2 Z" transform="rotate(135 50 50)"/>
+        <path d="M47,18 L53,18 L50,2 Z" transform="rotate(180 50 50)"/>
+        <path d="M47,18 L53,18 L50,2 Z" transform="rotate(225 50 50)"/>
+        <path d="M47,18 L53,18 L50,2 Z" transform="rotate(270 50 50)"/>
+        <path d="M47,18 L53,18 L50,2 Z" transform="rotate(315 50 50)"/>
+      </g>
+      <circle cx="50" cy="50" r="32" fill="url(#sunBody)"/>
+      <circle cx="58" cy="58" r="30" fill="#000000" opacity="0.14" clip-path="url(#sunClip)"/>
+      <path id="sunSpark" d="M76,18 L77.56,24.44 L84,26 L77.56,27.56 L76,34 L74.44,27.56 L68,26 L74.44,24.44 Z" fill="#FFF6DE"/>
+    </svg>
+  </div>
+</div>
+
+<header class="masthead">
+  <span class="wordmark">BRAND_NAME — Lantern <span style="font-weight:400;font-size:.7em;color:var(--ink-soft)">(placeholder)</span></span>
+  <span class="tagline">Reorient your day around salah — not the other way around.</span>
+</header>
+
+<main>
+
+  <!-- HERO — Fajr / sunrise. Visual focus is the fixed #kaabah-wrap element (see body top),
+       which sits large and centered here, then shrinks to a top-right dock as the user scrolls. -->
+  <section class="hero" data-light-band="fajr" id="hero">
+    <div class="wrap">
+      <h1>"Indeed, prayer has been decreed upon the believers a decree of specified times."</h1>
+      <p class="verse-citation">Qur'an, An-Nisa 4:103 — Sahih International</p>
+      <p class="sub">Most calendars ask salah to fit in. Lantern starts from the five fixed times and shapes your day around them — the way it was always meant to work.</p>
+      <div class="cta-row">
+        <a href="#founding" class="btn btn-primary">Reserve founding access</a>
+        <a href="#intention" class="btn btn-secondary">See how it works</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- PROBLEM — Dhuhr -->
+  <section class="problem" data-light-band="dhuhr" id="problem">
+    <div class="wrap">
+      <h2>Your calendar is the skeleton of your day.</h2>
+      <p class="sub">Most calendars are built around meetings, not meaning. Prayer gets squeezed into whatever's left — interrupted, rushed, or quietly skipped when the day runs long.</p>
+      <div class="skeleton-row">
+        <div class="skeleton-card">
+          <h3>Back-to-back blocks</h3>
+          <p>No room left for the five fixed points your day actually turns on.</p>
+        </div>
+        <div class="skeleton-card">
+          <h3>Reactive reminders</h3>
+          <p>A notification fires mid-meeting. You dismiss it. You mean to come back.</p>
+        </div>
+        <div class="skeleton-card">
+          <h3>No protected return</h3>
+          <p>Nothing in your tools treats the moment after prayer as worth shaping, too.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- LOOP — Asr -->
+  <section class="loop" data-light-band="asr" id="loop">
+    <div class="wrap">
+      <h2>A day shaped by arrival, not alarms.</h2>
+      <div class="loop-grid">
+        <div class="loop-step">
+          <span class="num">01 Arrives</span>
+          <h3>The window opens</h3>
+          <p>Lantern marks the start of each prayer's window quietly — no urgent banner, just a shift in light.</p>
+        </div>
+        <div class="loop-step">
+          <span class="num">02 Commit</span>
+          <h3>You choose a moment</h3>
+          <p>Pick a time within the window that actually fits your day. Lantern holds it, doesn't nag before it.</p>
+        </div>
+        <div class="loop-step">
+          <span class="num">03 Protect</span>
+          <h3>The block is guarded</h3>
+          <p>The time around your prayer is shielded from other plans — small, deliberate, undisturbed.</p>
+        </div>
+        <div class="loop-step">
+          <span class="num">04 Return</span>
+          <h3>You come back with intention</h3>
+          <p>One line of focus for what's next — work, family, rest — so the moment after prayer has shape too.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- INTENTION — Maghrib -->
+  <section class="intention" data-light-band="maghrib" id="intention">
+    <div class="wrap">
+      <h2>One line of intention, every time you return.</h2>
+      <p class="sub">After each prayer, Lantern asks one quiet question: what's this block for? Watch how it works, then try it yourself below.</p>
+
+      <div class="demo" id="demo" aria-hidden="true">
+        <div class="demo-pills" id="demo-pills">
+          <span class="demo-pill" data-key="fajr">Fajr</span>
+          <span class="demo-pill" data-key="dhuhr">Dhuhr</span>
+          <span class="demo-pill" data-key="asr">Asr</span>
+          <span class="demo-pill" data-key="maghrib">Maghrib</span>
+          <span class="demo-pill" data-key="isha">Isha</span>
+        </div>
+
+        <div class="demo-timeline" id="demo-timeline">
+          <span class="demo-tick" style="left:0%">4 AM</span>
+          <span class="demo-tick" style="left:21%">8 AM</span>
+          <span class="demo-tick" style="left:42.1%">12 PM</span>
+          <span class="demo-tick" style="left:63.2%">4 PM</span>
+          <span class="demo-tick" style="left:84.2%">8 PM</span>
+          <span class="demo-tick" style="left:100%">11 PM</span>
+          <div class="demo-window" id="demo-window"></div>
+          <div class="demo-selection" id="demo-selection">
+            <span class="demo-block-tag" id="demo-block-tag"></span>
+          </div>
+          <div class="demo-placed" id="demo-placed-fajr">
+            <span class="demo-placed-label">Fajr</span>
+            <span class="demo-placed-time"></span>
+          </div>
+          <div class="demo-placed" id="demo-placed-dhuhr">
+            <span class="demo-placed-label">Dhuhr</span>
+            <span class="demo-placed-time"></span>
+          </div>
+          <svg class="demo-cursor" id="demo-cursor" viewBox="0 0 24 24">
+            <path d="M4 2 L4 20 L9 15.5 L12.5 22 L15 20.5 L11.5 14 L18 14 Z" fill="#3A3228" stroke="#F6EFDC" stroke-width="1.2" stroke-linejoin="round"/>
+          </svg>
+        </div>
+
+        <div class="demo-quickpicks" id="demo-quickpicks">
+          <span class="demo-qp" data-tag="Work">Work</span>
+          <span class="demo-qp" data-tag="Family">Family</span>
+          <span class="demo-qp" data-tag="Rest">Rest</span>
+          <span class="demo-qp" data-tag="Qur'an">Qur'an</span>
+          <span class="demo-qp" data-tag="Errands">Errands</span>
+        </div>
+
+        <p class="demo-caption">A preview of how Lantern works — this animation plays on its own, nothing here is clickable. Try the real thing below.</p>
+      </div>
+
+      <div class="modal-trigger-row">
+        <button class="btn btn-primary" id="open-planner">Try planning a day →</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOUNDING — Isha / lantern -->
+  <section class="founding" data-light-band="isha" id="founding">
+    <svg class="star-field" viewBox="0 0 1000 700" preserveAspectRatio="none" aria-hidden="true">
+      <g fill="#FFF6DE">
+        <circle cx="60" cy="80" r="1.8" opacity=".6"/>
+        <circle cx="140" cy="200" r="2.2" opacity=".8"/>
+        <circle cx="220" cy="50" r="1.5" opacity=".5"/>
+        <circle cx="310" cy="150" r="2.5" opacity=".7"/>
+        <circle cx="380" cy="280" r="1.8" opacity=".6"/>
+        <circle cx="450" cy="90" r="2" opacity=".9"/>
+        <circle cx="520" cy="220" r="1.6" opacity=".5"/>
+        <circle cx="600" cy="60" r="2.3" opacity=".7"/>
+        <circle cx="670" cy="180" r="1.9" opacity=".6"/>
+        <circle cx="740" cy="40" r="2.1" opacity=".8"/>
+        <circle cx="810" cy="140" r="1.7" opacity=".5"/>
+        <circle cx="880" cy="250" r="2.4" opacity=".7"/>
+        <circle cx="940" cy="80" r="1.8" opacity=".6"/>
+        <circle cx="90" cy="320" r="2" opacity=".6"/>
+        <circle cx="250" cy="350" r="1.6" opacity=".5"/>
+        <circle cx="420" cy="380" r="2.2" opacity=".7"/>
+        <circle cx="580" cy="340" r="1.9" opacity=".6"/>
+        <circle cx="720" cy="310" r="2.3" opacity=".8"/>
+        <circle cx="860" cy="360" r="1.7" opacity=".5"/>
+        <circle cx="970" cy="300" r="2" opacity=".6"/>
+        <circle cx="170" cy="450" r="1.8" opacity=".5"/>
+        <circle cx="330" cy="470" r="2.1" opacity=".6"/>
+        <circle cx="490" cy="440" r="1.6" opacity=".5"/>
+        <circle cx="650" cy="460" r="2" opacity=".7"/>
+        <circle cx="800" cy="430" r="1.9" opacity=".6"/>
+        <circle cx="40" cy="550" r="2" opacity=".6"/>
+        <circle cx="230" cy="580" r="1.7" opacity=".5"/>
+        <circle cx="560" cy="560" r="1.9" opacity=".6"/>
+        <circle cx="900" cy="540" r="2.1" opacity=".7"/>
+      </g>
+      <g class="twinkle-star" fill="#FFFBF2">
+        <path d="M150,120 L151.6,126.4 L158,128 L151.6,129.6 L150,136 L148.4,129.6 L142,128 L148.4,126.4 Z" transform="scale(.6)" style="transform-origin:150px 128px;"/>
+      </g>
+      <g class="twinkle-star twinkle-star-b" fill="#FFFBF2">
+        <path d="M500,180 L501.6,186.4 L508,188 L501.6,189.6 L500,196 L498.4,189.6 L492,188 L498.4,186.4 Z" transform="scale(.7)" style="transform-origin:500px 188px;"/>
+      </g>
+      <g class="twinkle-star twinkle-star-c" fill="#FFFBF2">
+        <path d="M780,100 L781.6,106.4 L788,108 L781.6,109.6 L780,116 L778.4,109.6 L772,108 L778.4,106.4 Z" transform="scale(.6)" style="transform-origin:780px 108px;"/>
+      </g>
+      <g class="twinkle-star" fill="#FFFBF2">
+        <path d="M350,400 L351.6,406.4 L358,408 L351.6,409.6 L350,416 L348.4,409.6 L342,408 L348.4,406.4 Z" transform="scale(.65)" style="transform-origin:350px 408px;"/>
+      </g>
+    </svg>
+    <div class="wrap">
+      <h2>Become a founding member.</h2>
+      <p class="sub">Lock in founding pricing before launch. Lantern is built local-first — no accounts, no cloud sync, your day stays on your device.</p>
+
+      <div class="price-row">
+        <span class="price">£15</span>
+        <span class="price-note">one-time, founding price — regular price will be higher at launch</span>
+      </div>
+
+      <div class="platform-row">
+        <!-- Platform fake-door buttons: out of scope to wire up, see PAYMENT_LINK note below -->
+        <button class="platform-btn" type="button">macOS</button>
+        <button class="platform-btn" type="button">Windows</button>
+        <button class="platform-btn" type="button">Linux</button>
+      </div>
+
+      <form class="email-form" id="email-form" action="FORM_ENDPOINT" method="POST">
+        <!-- FORM_ENDPOINT PLACEHOLDER: wire up Tally/Formspree/etc. before launch. -->
+        <label for="email-input" class="visually-hidden">Email address</label>
+        <input type="email" id="email-input" name="email" placeholder="you@email.com" required>
+        <button type="submit" class="btn btn-primary">Reserve my spot</button>
+      </form>
+      <p class="form-note">
+        Payment isn't wired up yet (PAYMENT_LINK placeholder) — founder hasn't decided between waitlist-only,
+        reserve-now-charge-at-launch, or charge-now-with-refund-guarantee. This button currently only captures email.
+      </p>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <ul class="promises">
+      <li>Local-first. No account required.</li>
+      <li>No calendar integration, no cloud sync.</li>
+      <li>Built around five arrivals, not streaks.</li>
+    </ul>
+    <p class="fine-print">Prayer windows shown throughout this page (including the "plan your day" preview) are illustrative for demonstration purposes only and are not a ruling on prayer timing. Please consult your local prayer time authority. BRAND_NAME is a working name and may change before launch.</p>
+  </div>
+</footer>
+
+<!-- ============ PLAN YOUR DAY MODAL ============ -->
+<div class="modal-overlay" id="planner-overlay">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="planner-title" id="planner-modal">
+    <div class="modal-head">
+      <div>
+        <h2 id="planner-title">Plan your day</h2>
+        <p class="note">A preview of how Lantern works — nothing here is saved. Refresh to reset.</p>
+      </div>
+      <button class="modal-close" id="planner-close" aria-label="Close plan your day preview">✕</button>
+    </div>
+
+    <p class="note" style="margin-top:14px;">Drag each prayer onto its window, or focus a chip and press Enter to place it with your keyboard.</p>
+
+    <div class="tray" id="planner-tray" aria-label="Unplaced prayers">
+      <!-- chips injected by JS -->
+    </div>
+
+    <div class="inline-msg" id="planner-msg" role="status" aria-live="polite"></div>
+
+    <div class="timeline" id="planner-timeline">
+      <!-- segments injected by JS -->
+    </div>
+
+    <div class="block-quickpicks" id="planner-quickpicks">
+      <span class="qp-label" id="qp-label">What is this block for?</span>
+      <!-- quick-pick buttons injected by JS -->
+    </div>
+
+    <div class="modal-status visually-hidden" id="planner-live" aria-live="polite"></div>
+
+    <div class="modal-complete" id="planner-complete">That's your day, shaped around five arrivals.</div>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  /* =========================================================
+     SCROLL-LINKED SUN — full Fajr -> Dhuhr -> Asr -> Maghrib -> Isha cycle.
+     Starts low in the bottom-left (sunrise), rises to a zenith around
+     Dhuhr, then descends back down toward sunset/night by Isha. Position
+     is driven entirely by peakFrac (a fraction of viewport height) per
+     band, smoothly interpolated — no separate wobble/arc layer, so this
+     stays a direct 1:1 function of scroll position throughout.
+     ========================================================= */
+  (function(){
+    var sun = document.getElementById("sun");
+    var rays = document.getElementById("sunRays");
+    var glowStop1 = document.getElementById("sunGlowStop1");
+    var glowStop2 = document.getElementById("sunGlowStop2");
+    var bodyStop1 = document.getElementById("sunBodyStop1");
+    var bodyStop2 = document.getElementById("sunBodyStop2");
+    var bands = Array.prototype.slice.call(document.querySelectorAll("[data-light-band]"));
+    var hero = document.getElementById("hero");
+
+    var KEYFRAMES = {
+      fajr:    { color: "#EFAE6E", glow: "#FFF1D6", highlight: "#FFFBF2", r: 22, peakFrac: 0.82 },
+      dhuhr:   { color: "#F6E2B4", glow: "#FFFBEF", highlight: "#FFFFFF", r: 34, peakFrac: 0.10 },
+      asr:     { color: "#E8B85C", glow: "#F6E2B4", highlight: "#FFF6DE", r: 30, peakFrac: 0.20 },
+      maghrib: { color: "#D9764A", glow: "#E8A36C", highlight: "#F6C99A", r: 24, peakFrac: 0.50 },
+      isha:    { color: "#E8B85C", glow: "#E8B85C", highlight: "#F6E2B4", r: 11, peakFrac: 0.70 }
+    };
+    var ORDER = ["fajr", "dhuhr", "asr", "maghrib", "isha"];
+
+    function lerp(a, b, t){ return a + (b - a) * t; }
+    function hexToRgb(hex){
+      var n = parseInt(hex.slice(1), 16);
+      return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+    }
+    function rgbToHex(rgb){
+      return "#" + rgb.map(function(v){ return Math.round(v).toString(16).padStart(2,"0"); }).join("");
+    }
+    function lerpColor(c1, c2, t){
+      var a = hexToRgb(c1), b = hexToRgb(c2);
+      return rgbToHex([lerp(a[0],b[0],t), lerp(a[1],b[1],t), lerp(a[2],b[2],t)]);
+    }
+
+    var ticking = false;
+
+    function findActiveBand(){
+      var vh = window.innerHeight;
+      var center = vh * 0.4;
+      var active = bands[0];
+      var t = 0;
+      for (var i = 0; i < bands.length; i++){
+        var rect = bands[i].getBoundingClientRect();
+        if (rect.top <= center && rect.bottom >= center){
+          active = bands[i];
+          t = rect.height > 0 ? (center - rect.top) / rect.height : 0;
+          break;
+        }
+        if (rect.top > center){ break; }
+        active = bands[i];
+        t = 1;
+      }
+      return { band: active.dataset.lightBand, t: Math.max(0, Math.min(1, t)) };
+    }
+
+    function render(){
+      ticking = false;
+      // Sun stays put until the page scrolls past the hero into the first
+      // cross-section gradient — then its full journey plays out across the
+      // remaining scroll distance.
+      var heroHeight = hero.offsetHeight;
+      var scrollH = document.documentElement.scrollHeight - window.innerHeight;
+      var travel = scrollH - heroHeight;
+      var g = travel > 0 ? (window.scrollY - heroHeight) / travel : 0;
+      g = Math.max(0, Math.min(1, g));
+
+      // Stay pinned to fajr's exact starting values for the whole hero, rather
+      // than letting localT drift while still in the hero's own section bounds.
+      var info = window.scrollY <= heroHeight ? { band: "fajr", t: 0 } : findActiveBand();
+      var idx = ORDER.indexOf(info.band);
+      if (idx === -1) idx = 0;
+      var kf1 = KEYFRAMES[ORDER[idx]];
+      var kf2 = KEYFRAMES[ORDER[Math.min(idx + 1, ORDER.length - 1)]];
+      var localT = idx === ORDER.length - 1 ? 0 : info.t;
+
+      var color = lerpColor(kf1.color, kf2.color, localT);
+      var glow = lerpColor(kf1.glow, kf2.glow, localT);
+      var highlight = lerpColor(kf1.highlight, kf2.highlight, localT);
+      var r = lerp(kf1.r, kf2.r, localT);
+      var peakFrac = lerp(kf1.peakFrac, kf2.peakFrac, localT);
+
+      var x = g * window.innerWidth;
+      var y = peakFrac * window.innerHeight;
+
+      sun.style.transform = "translate(" + (x - r) + "px," + y + "px)";
+      sun.style.width = (r * 2) + "px";
+      sun.style.height = (r * 2) + "px";
+
+      glowStop1.setAttribute("stop-color", glow);
+      glowStop2.setAttribute("stop-color", glow);
+      bodyStop1.setAttribute("stop-color", highlight);
+      bodyStop2.setAttribute("stop-color", color);
+      rays.setAttribute("fill", glow);
+    }
+
+    function onScroll(){
+      if (!ticking){
+        ticking = true;
+        requestAnimationFrame(render);
+      }
+    }
+
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll);
+    render();
+  })();
+
+  /* =========================================================
+     SCROLL-LINKED KAABAH — large and centered at the top of the
+     hero, shrinks and moves to a permanent top-right dock as the
+     user scrolls past the hero. Purely decorative once docked.
+     Headline text is visible from the start — sizing/position below
+     keep it clear of the art rather than hiding text to dodge overlap.
+     ========================================================= */
+  (function(){
+    var wrap = document.getElementById("kaabah-wrap");
+    var halo = wrap.querySelector(".kaabah-halo");
+    var hero = document.getElementById("hero");
+
+    function lerp(a, b, t){ return a + (b - a) * t; }
+    function ease(t){ return t < 0.5 ? 4*t*t*t : 1 - Math.pow(-2*t + 2, 3) / 2; }
+    function clamp01(t){ return Math.max(0, Math.min(1, t)); }
+
+    var ticking = false;
+
+    function render(){
+      ticking = false;
+      var vw = window.innerWidth, vh = window.innerHeight;
+      var heroHeight = hero.offsetHeight;
+      var progress = heroHeight > 0 ? window.scrollY / heroHeight : 1;
+      progress = clamp01(progress);
+      var t = ease(progress);
+
+      // SVG viewBox is 240x240 (square — it's a cube).
+      var ASPECT = 240 / 240;
+      var size0 = Math.min(360, vw * 0.46, vh * 0.6);
+      var x0 = vw / 2;
+      var y0 = vh * 0.48;
+
+      var size1 = 52;
+      var x1 = vw - 46;
+      var y1 = 46;
+
+      var size = lerp(size0, size1, t);
+      var x = lerp(x0, x1, t);
+      var y = lerp(y0, y1, t);
+      var height = size * ASPECT;
+
+      wrap.style.transform = "translate(" + (x - size / 2) + "px," + (y - height / 2) + "px)";
+      wrap.style.width = size + "px";
+      wrap.style.height = height + "px";
+      halo.style.opacity = lerp(0.85, 0.35, progress);
+    }
+
+    function onScroll(){
+      if (!ticking){
+        ticking = true;
+        requestAnimationFrame(render);
+      }
+    }
+
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll);
+    render();
+  })();
+
+  /* =========================================================
+     INTENTION DEMO — scripted autoplay teaser (decorative).
+     A fake cursor demonstrates: pick up Fajr, see its valid
+     window highlight green, drop it in; same for Dhuhr; then
+     drag-select a custom range and tag it "Work". Loops while
+     visible, pauses off-screen, shows a static end frame under
+     prefers-reduced-motion instead of animating.
+     ========================================================= */
+  (function(){
+    var demo = document.getElementById("demo");
+    if (!demo) return;
+
+    var pills = demo.querySelectorAll(".demo-pill");
+    var timeline = document.getElementById("demo-timeline");
+    var windowEl = document.getElementById("demo-window");
+    var selectionEl = document.getElementById("demo-selection");
+    var placedFajr = document.getElementById("demo-placed-fajr");
+    var placedDhuhr = document.getElementById("demo-placed-dhuhr");
+    var blockTag = document.getElementById("demo-block-tag");
+    var quickpicksRow = document.getElementById("demo-quickpicks");
+    var quickpicks = demo.querySelectorAll(".demo-qp");
+    var cursor = document.getElementById("demo-cursor");
+
+    var RANGE_START = 4 * 60, RANGE_END = 23 * 60;
+    var WINDOWS = { fajr: { start: 4*60+30, end: 6*60 }, dhuhr: { start: 13*60, end: 13*60+30 } };
+    var WORK_RANGE = { start: 9*60, end: 11*60+30 };
+    var FAJR_DROP = 5*60, DHUHR_DROP = 13*60+15;
+
+    function xPct(mins){ return (mins - RANGE_START) / (RANGE_END - RANGE_START) * 100; }
+    function timeLabel(mins){
+      var h = Math.floor(mins / 60), m = mins % 60;
+      var ampm = h >= 12 ? "PM" : "AM";
+      var h12 = h % 12; if (h12 === 0) h12 = 12;
+      return h12 + ":" + (m < 10 ? "0" + m : m) + " " + ampm;
+    }
+    function wait(ms){ return new Promise(function(res){ setTimeout(res, ms); }); }
+
+    function relPoint(el, xFrac, yFrac){
+      var demoRect = demo.getBoundingClientRect();
+      var r = el.getBoundingClientRect();
+      return { x: (r.left - demoRect.left) + r.width * xFrac, y: (r.top - demoRect.top) + r.height * yFrac };
+    }
+    function timelinePoint(minutes, yFrac){
+      var demoRect = demo.getBoundingClientRect();
+      var tRect = timeline.getBoundingClientRect();
+      var pct = xPct(minutes) / 100;
+      return { x: (tRect.left - demoRect.left) + tRect.width * pct, y: (tRect.top - demoRect.top) + tRect.height * yFrac };
+    }
+    function moveCursor(x, y, duration){
+      cursor.style.transition = "left " + duration + "ms ease, top " + duration + "ms ease, opacity .3s ease, transform .15s ease";
+      cursor.style.left = x + "px";
+      cursor.style.top = y + "px";
+      return wait(duration);
+    }
+    function cursorClick(){
+      cursor.classList.add("clicking");
+      setTimeout(function(){ cursor.classList.remove("clicking"); }, 220);
+    }
+    function showWindow(win){
+      windowEl.style.left = xPct(win.start) + "%";
+      windowEl.style.width = (xPct(win.end) - xPct(win.start)) + "%";
+      windowEl.style.opacity = "1";
+    }
+    function hideWindow(){ windowEl.style.opacity = "0"; }
+    function placePrayer(key, minutes){
+      var pill = demo.querySelector('.demo-pill[data-key="' + key + '"]');
+      pill.classList.add("placed");
+      pill.classList.remove("picked");
+      var marker = key === "fajr" ? placedFajr : placedDhuhr;
+      marker.style.left = xPct(minutes) + "%";
+      marker.querySelector(".demo-placed-time").textContent = timeLabel(minutes);
+      marker.style.display = "flex";
+    }
+    function animateSelection(startMin, endMin, duration, cancelRef){
+      return new Promise(function(resolve){
+        var t0 = performance.now();
+        var startPct = xPct(startMin), endPct = xPct(endMin);
+        selectionEl.style.display = "block";
+        selectionEl.style.left = startPct + "%";
+        cursor.style.transition = "opacity .3s ease, transform .15s ease";
+        function step(now){
+          var t = Math.min(1, (now - t0) / duration);
+          var curPct = startPct + (endPct - startPct) * t;
+          selectionEl.style.width = (curPct - startPct) + "%";
+          var pt = timelinePoint(RANGE_START + (curPct / 100) * (RANGE_END - RANGE_START), 0.5);
+          cursor.style.left = pt.x + "px";
+          cursor.style.top = pt.y + "px";
+          if (t < 1 && !cancelRef.cancelled){ requestAnimationFrame(step); } else { resolve(); }
+        }
+        requestAnimationFrame(step);
+      });
+    }
+    function tagBlock(tag){
+      quickpicks.forEach(function(q){ q.classList.toggle("chosen", q.dataset.tag === tag); });
+      selectionEl.classList.add("tagged");
+      blockTag.textContent = tag;
+      blockTag.style.display = "block";
+    }
+    function resetVisuals(){
+      pills.forEach(function(p){ p.classList.remove("picked", "placed"); });
+      windowEl.style.opacity = "0"; windowEl.style.width = "0";
+      selectionEl.style.display = "none"; selectionEl.classList.remove("tagged"); selectionEl.style.width = "0";
+      placedFajr.style.display = "none";
+      placedDhuhr.style.display = "none";
+      blockTag.style.display = "none";
+      quickpicks.forEach(function(q){ q.classList.remove("chosen"); });
+      quickpicksRow.classList.remove("active");
+      cursor.style.transition = "none";
+      cursor.style.opacity = "0";
+    }
+    function showEndState(){
+      resetVisuals();
+      demo.querySelector('.demo-pill[data-key="fajr"]').classList.add("placed");
+      demo.querySelector('.demo-pill[data-key="dhuhr"]').classList.add("placed");
+      placePrayer("fajr", FAJR_DROP);
+      placePrayer("dhuhr", DHUHR_DROP);
+      selectionEl.style.display = "block";
+      selectionEl.style.left = xPct(WORK_RANGE.start) + "%";
+      selectionEl.style.width = (xPct(WORK_RANGE.end) - xPct(WORK_RANGE.start)) + "%";
+      quickpicksRow.classList.add("active");
+      tagBlock("Work");
+    }
+
+    var cancelRef = { cancelled: true };
+    var loopRunning = false;
+
+    function playSequence(){
+      resetVisuals();
+      var fajrPill = demo.querySelector('.demo-pill[data-key="fajr"]');
+      var dhuhrPill = demo.querySelector('.demo-pill[data-key="dhuhr"]');
+
+      return wait(500)
+        .then(function(){
+          if (cancelRef.cancelled) return Promise.reject("cancelled");
+          var start = relPoint(fajrPill, 0.5, 2.4);
+          cursor.style.transition = "none";
+          cursor.style.left = start.x + "px"; cursor.style.top = start.y + "px";
+          cursor.style.opacity = "1";
+          var p = relPoint(fajrPill, 0.5, 0.5);
+          return moveCursor(p.x, p.y, 700);
+        })
+        .then(function(){
+          if (cancelRef.cancelled) return Promise.reject("cancelled");
+          cursorClick();
+          fajrPill.classList.add("picked");
+          return wait(350);
+        })
+        .then(function(){
+          showWindow(WINDOWS.fajr);
+          return wait(500);
+        })
+        .then(function(){
+          if (cancelRef.cancelled) return Promise.reject("cancelled");
+          var d = timelinePoint(FAJR_DROP, 0.5);
+          return moveCursor(d.x, d.y, 900);
+        })
+        .then(function(){
+          if (cancelRef.cancelled) return Promise.reject("cancelled");
+          placePrayer("fajr", FAJR_DROP);
+          hideWindow();
+          return wait(600);
+        })
+        .then(function(){
+          if (cancelRef.cancelled) return Promise.reject("cancelled");
+          var p = relPoint(dhuhrPill, 0.5, 0.5);
+          return moveCursor(p.x, p.y, 800);
+        })
+        .then(function(){
+          if (cancelRef.cancelled) return Promise.reject("cancelled");
+          cursorClick();
+          dhuhrPill.classList.add("picked");
+          return wait(350);
+        })
+        .then(function(){
+          showWindow(WINDOWS.dhuhr);
+          return wait(500);
+        })
+        .then(function(){
+          if (cancelRef.cancelled) return Promise.reject("cancelled");
+          var d = timelinePoint(DHUHR_DROP, 0.5);
+          return moveCursor(d.x, d.y, 800);
+        })
+        .then(function(){
+          if (cancelRef.cancelled) return Promise.reject("cancelled");
+          placePrayer("dhuhr", DHUHR_DROP);
+          hideWindow();
+          return wait(700);
+        })
+        .then(function(){
+          if (cancelRef.cancelled) return Promise.reject("cancelled");
+          var s = timelinePoint(WORK_RANGE.start, 0.5);
+          return moveCursor(s.x, s.y, 800);
+        })
+        .then(function(){
+          if (cancelRef.cancelled) return Promise.reject("cancelled");
+          return animateSelection(WORK_RANGE.start, WORK_RANGE.end, 900, cancelRef);
+        })
+        .then(function(){
+          if (cancelRef.cancelled) return Promise.reject("cancelled");
+          return wait(400);
+        })
+        .then(function(){
+          if (cancelRef.cancelled) return Promise.reject("cancelled");
+          quickpicksRow.classList.add("active");
+          return wait(500);
+        })
+        .then(function(){
+          if (cancelRef.cancelled) return Promise.reject("cancelled");
+          var workQp = demo.querySelector('.demo-qp[data-tag="Work"]');
+          var p = relPoint(workQp, 0.5, 0.5);
+          return moveCursor(p.x, p.y, 700);
+        })
+        .then(function(){
+          if (cancelRef.cancelled) return Promise.reject("cancelled");
+          cursorClick();
+          tagBlock("Work");
+          return wait(2800);
+        })
+        .then(function(){
+          cursor.style.opacity = "0";
+          return wait(900);
+        })
+        .then(function(){
+          if (!cancelRef.cancelled){ return playSequence(); }
+        })
+        .catch(function(){ /* cancelled mid-sequence — fine, startLoop() will restart cleanly */ });
+    }
+
+    function startLoop(){
+      if (loopRunning) return;
+      loopRunning = true;
+      cancelRef = { cancelled: false };
+      playSequence();
+    }
+    function stopLoop(){
+      loopRunning = false;
+      cancelRef.cancelled = true;
+    }
+
+    if (reduceMotion){
+      showEndState();
+    } else {
+      var obs = new IntersectionObserver(function(entries){
+        entries.forEach(function(entry){
+          if (entry.isIntersecting){ startLoop(); } else { stopLoop(); }
+        });
+      }, { threshold: 0.3 });
+      obs.observe(demo);
+    }
+  })();
+
+  /* =========================================================
+     PLAN YOUR DAY MODAL
+     ========================================================= */
+  (function(){
+    var PRAYERS = [
+      { key: "fajr",    label: "Fajr",    arabic: "فجر",  start: 4*60+30,  end: 6*60,      blockLabel: "Until Dhuhr" },
+      { key: "dhuhr",   label: "Dhuhr",   arabic: "ظهر",  start: 12*60+30, end: 15*60+30,  blockLabel: "Until Asr" },
+      { key: "asr",     label: "Asr",     arabic: "عصر",  start: 15*60+30, end: 18*60,     blockLabel: "Until Maghrib" },
+      { key: "maghrib", label: "Maghrib", arabic: "مغرب", start: 18*60,    end: 19*60+15,  blockLabel: "Until Isha" },
+      { key: "isha",    label: "Isha",    arabic: "عشاء", start: 19*60+15, end: 22*60+30,  blockLabel: "Wind down" }
+    ];
+    var QUICKPICKS = ["Work", "Family", "Rest", "Qur'an", "Errands"];
+
+    var overlay = document.getElementById("planner-overlay");
+    var openBtn = document.getElementById("open-planner");
+    var closeBtn = document.getElementById("planner-close");
+    var tray = document.getElementById("planner-tray");
+    var timeline = document.getElementById("planner-timeline");
+    var msg = document.getElementById("planner-msg");
+    var liveRegion = document.getElementById("planner-live");
+    var completeEl = document.getElementById("planner-complete");
+    var quickpicksEl = document.getElementById("planner-quickpicks");
+
+    var state = {}; // key -> { placed:bool, minutes:number, blockTag:string|null }
+    PRAYERS.forEach(function(p){ state[p.key] = { placed: false, minutes: null, blockTag: null }; });
+
+    var keyboardPicked = null; // key of chip currently picked up via keyboard
+    var keyboardMinutes = null;
+    var activeQuickpickKey = null;
+    var lastFocused = null;
+
+    function minutesToLabel(mins){
+      var h = Math.floor(mins / 60);
+      var m = Math.round(mins % 60);
+      var ampm = h >= 12 ? "PM" : "AM";
+      var h12 = h % 12; if (h12 === 0) h12 = 12;
+      return h12 + ":" + (m < 10 ? "0" + m : m) + " " + ampm;
+    }
+
+    function buildTray(){
+      tray.innerHTML = "";
+      PRAYERS.forEach(function(p){
+        if (state[p.key].placed) return;
+        var chip = document.createElement("button");
+        chip.type = "button";
+        chip.className = "prayer-chip";
+        chip.dataset.key = p.key;
+        chip.setAttribute("aria-pressed", keyboardPicked === p.key ? "true" : "false");
+        chip.innerHTML = '<span class="arabic">' + p.arabic + '</span>' + p.label;
+        chip.addEventListener("pointerdown", onChipPointerDown);
+        chip.addEventListener("keydown", onChipKeydown);
+        tray.appendChild(chip);
+      });
+    }
+
+    function buildTimeline(){
+      timeline.innerHTML = "";
+      PRAYERS.forEach(function(p){
+        var seg = document.createElement("div");
+        seg.className = "segment " + p.key;
+        seg.dataset.key = p.key;
+        seg.innerHTML =
+          '<span class="seg-label">' + p.label + '</span>' +
+          '<span class="seg-window">' + minutesToLabel(p.start) + '–' + minutesToLabel(p.end) + '</span>';
+
+        var st = state[p.key];
+        if (st.placed){
+          var posPct = ((st.minutes - p.start) / (p.end - p.start)) * 100;
+
+          var timeEl = document.createElement("span");
+          timeEl.className = "placed-time";
+          timeEl.style.left = posPct + "%";
+          timeEl.textContent = minutesToLabel(st.minutes);
+          seg.appendChild(timeEl);
+
+          var chipEl = document.createElement("span");
+          chipEl.className = "placed-chip";
+          chipEl.style.left = posPct + "%";
+          chipEl.textContent = p.label;
+          seg.appendChild(chipEl);
+
+          if (st.blockTag){
+            var tagEl = document.createElement("span");
+            tagEl.className = "block-label-tag";
+            tagEl.style.left = posPct + "%";
+            tagEl.textContent = st.blockTag;
+            seg.appendChild(tagEl);
+          }
+
+          var trigger = document.createElement("button");
+          trigger.type = "button";
+          trigger.className = "block-tag-trigger";
+          trigger.setAttribute("aria-label", p.blockLabel + " — tag this block (currently " + (st.blockTag || "untagged") + ")");
+          trigger.addEventListener("click", function(){ toggleQuickpicks(p.key); });
+          seg.appendChild(trigger);
+        }
+
+        timeline.appendChild(seg);
+      });
+    }
+
+    function toggleQuickpicks(key){
+      activeQuickpickKey = activeQuickpickKey === key ? null : key;
+      renderQuickpicks();
+    }
+
+    function renderQuickpicks(){
+      if (!activeQuickpickKey){
+        quickpicksEl.classList.remove("open");
+        quickpicksEl.innerHTML = '<span class="qp-label" id="qp-label">What is this block for?</span>';
+        return;
+      }
+      var p = PRAYERS.filter(function(x){ return x.key === activeQuickpickKey; })[0];
+      quickpicksEl.classList.add("open");
+      quickpicksEl.innerHTML = '<span class="qp-label">' + p.blockLabel + ' — what is this block for?</span>';
+      QUICKPICKS.forEach(function(tag){
+        var btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "chip" + (state[p.key].blockTag === tag ? " active" : "");
+        btn.textContent = tag;
+        btn.addEventListener("click", function(){
+          state[p.key].blockTag = tag;
+          activeQuickpickKey = null;
+          render();
+          announce(p.label + "'s next block tagged " + tag + ".");
+        });
+        quickpicksEl.appendChild(btn);
+      });
+    }
+
+    function announce(text){
+      liveRegion.textContent = text;
+    }
+
+    function showMsg(text){
+      msg.textContent = text;
+      if (text){
+        setTimeout(function(){ if (msg.textContent === text) msg.textContent = ""; }, 2600);
+      }
+    }
+
+    function placePrayer(key, minutes){
+      state[key].placed = true;
+      state[key].minutes = minutes;
+      render();
+      var p = PRAYERS.filter(function(x){ return x.key === key; })[0];
+      announce(p.label + " planned for " + minutesToLabel(minutes) + ".");
+      checkComplete();
+    }
+
+    function checkComplete(){
+      var allPlaced = PRAYERS.every(function(p){ return state[p.key].placed; });
+      if (allPlaced){
+        completeEl.classList.add("show");
+      } else {
+        completeEl.classList.remove("show");
+      }
+    }
+
+    function render(){
+      buildTray();
+      buildTimeline();
+      renderQuickpicks();
+    }
+
+    /* ---------- pointer (mouse + touch) drag ---------- */
+    var dragKey = null;
+    var dragGhost = null;
+    var dragTimeGhost = null;
+
+    function onChipPointerDown(e){
+      var key = e.currentTarget.dataset.key;
+      dragKey = key;
+      e.currentTarget.classList.add("dragging");
+      e.currentTarget.setPointerCapture && e.currentTarget.setPointerCapture(e.pointerId);
+
+      window.addEventListener("pointermove", onPointerMove);
+      window.addEventListener("pointerup", onPointerUp);
+    }
+
+    function segmentUnderPoint(x, y){
+      var segs = timeline.querySelectorAll(".segment");
+      for (var i = 0; i < segs.length; i++){
+        var r = segs[i].getBoundingClientRect();
+        if (x >= r.left && x <= r.right && y >= r.top && y <= r.bottom){
+          return segs[i];
+        }
+      }
+      return null;
+    }
+
+    function clearDropStyles(){
+      timeline.querySelectorAll(".segment").forEach(function(s){
+        s.classList.remove("drop-target", "drop-reject");
+      });
+    }
+
+    function onPointerMove(e){
+      if (!dragKey) return;
+      clearDropStyles();
+      var seg = segmentUnderPoint(e.clientX, e.clientY);
+      if (!seg) return;
+      var correct = seg.dataset.key === dragKey;
+      seg.classList.add(correct ? "drop-target" : "drop-reject");
+
+      if (correct){
+        var p = PRAYERS.filter(function(x){ return x.key === dragKey; })[0];
+        var r = seg.getBoundingClientRect();
+        var t = Math.max(0, Math.min(1, (e.clientX - r.left) / r.width));
+        var minutes = p.start + t * (p.end - p.start);
+
+        if (!dragTimeGhost){
+          dragTimeGhost = document.createElement("span");
+          dragTimeGhost.className = "drag-time-ghost";
+          seg.appendChild(dragTimeGhost);
+        } else if (dragTimeGhost.parentElement !== seg){
+          seg.appendChild(dragTimeGhost);
+        }
+        dragTimeGhost.style.left = (t * 100) + "%";
+        dragTimeGhost.textContent = minutesToLabel(minutes);
+      } else if (dragTimeGhost && dragTimeGhost.parentElement){
+        dragTimeGhost.parentElement.removeChild(dragTimeGhost);
+      }
+    }
+
+    function onPointerUp(e){
+      if (!dragKey) return;
+      var seg = segmentUnderPoint(e.clientX, e.clientY);
+      var key = dragKey;
+
+      clearDropStyles();
+      if (dragTimeGhost && dragTimeGhost.parentElement){
+        dragTimeGhost.parentElement.removeChild(dragTimeGhost);
+      }
+      dragTimeGhost = null;
+
+      if (seg && seg.dataset.key === key){
+        var p = PRAYERS.filter(function(x){ return x.key === key; })[0];
+        var r = seg.getBoundingClientRect();
+        var t = Math.max(0, Math.min(1, (e.clientX - r.left) / r.width));
+        var minutes = p.start + t * (p.end - p.start);
+        placePrayer(key, minutes);
+      } else if (seg){
+        var pWrong = PRAYERS.filter(function(x){ return x.key === key; })[0];
+        showMsg("Pick a moment within " + pWrong.label + "'s window.");
+      }
+
+      dragKey = null;
+      window.removeEventListener("pointermove", onPointerMove);
+      window.removeEventListener("pointerup", onPointerUp);
+    }
+
+    /* ---------- keyboard equivalent ---------- */
+    function onChipKeydown(e){
+      var key = e.currentTarget.dataset.key;
+      if (e.key === "Enter" || e.key === " "){
+        e.preventDefault();
+        var p = PRAYERS.filter(function(x){ return x.key === key; })[0];
+        keyboardPicked = key;
+        keyboardMinutes = (p.start + p.end) / 2;
+        announce(p.label + " picked up. Use arrow keys to move within its window, Enter to drop, Escape to cancel.");
+        render();
+        focusTimelineGhost(key);
+      }
+    }
+
+    function focusTimelineGhost(key){
+      var seg = timeline.querySelector('.segment[data-key="' + key + '"]');
+      if (!seg) return;
+      seg.setAttribute("tabindex", "-1");
+      seg.focus();
+      seg.addEventListener("keydown", onSegmentKeydown);
+    }
+
+    function onSegmentKeydown(e){
+      if (!keyboardPicked) return;
+      var p = PRAYERS.filter(function(x){ return x.key === keyboardPicked; })[0];
+      var step = (p.end - p.start) / 24;
+
+      if (e.key === "ArrowRight" || e.key === "ArrowUp"){
+        e.preventDefault();
+        keyboardMinutes = Math.min(p.end, keyboardMinutes + step);
+        announce(minutesToLabel(keyboardMinutes));
+      } else if (e.key === "ArrowLeft" || e.key === "ArrowDown"){
+        e.preventDefault();
+        keyboardMinutes = Math.max(p.start, keyboardMinutes - step);
+        announce(minutesToLabel(keyboardMinutes));
+      } else if (e.key === "Enter"){
+        e.preventDefault();
+        var k = keyboardPicked;
+        var m = keyboardMinutes;
+        keyboardPicked = null;
+        keyboardMinutes = null;
+        e.currentTarget.removeEventListener("keydown", onSegmentKeydown);
+        placePrayer(k, m);
+      } else if (e.key === "Escape"){
+        e.preventDefault();
+        var canceled = PRAYERS.filter(function(x){ return x.key === keyboardPicked; })[0];
+        keyboardPicked = null;
+        keyboardMinutes = null;
+        e.currentTarget.removeEventListener("keydown", onSegmentKeydown);
+        announce(canceled.label + " returned to the tray.");
+        render();
+        var chipEl = tray.querySelector('[data-key="' + canceled.key + '"]');
+        if (chipEl) chipEl.focus();
+      }
+    }
+
+    /* ---------- modal open/close + focus trap ---------- */
+    function openModal(){
+      lastFocused = document.activeElement;
+      overlay.classList.add("open");
+      Object.keys(state).forEach(function(k){ state[k] = { placed:false, minutes:null, blockTag:null }; });
+      activeQuickpickKey = null;
+      keyboardPicked = null;
+      completeEl.classList.remove("show");
+      render();
+      closeBtn.focus();
+      document.addEventListener("keydown", onModalKeydown);
+    }
+
+    function closeModal(){
+      overlay.classList.remove("open");
+      document.removeEventListener("keydown", onModalKeydown);
+      if (lastFocused) lastFocused.focus();
+    }
+
+    function onModalKeydown(e){
+      if (e.key === "Escape"){
+        closeModal();
+        return;
+      }
+      if (e.key === "Tab"){
+        var focusables = overlay.querySelectorAll('button, input, [tabindex]:not([tabindex="-1"])');
+        if (focusables.length === 0) return;
+        var first = focusables[0], last = focusables[focusables.length - 1];
+        if (e.shiftKey && document.activeElement === first){
+          e.preventDefault(); last.focus();
+        } else if (!e.shiftKey && document.activeElement === last){
+          e.preventDefault(); first.focus();
+        }
+      }
+    }
+
+    openBtn.addEventListener("click", openModal);
+    closeBtn.addEventListener("click", closeModal);
+    overlay.addEventListener("click", function(e){ if (e.target === overlay) closeModal(); });
+
+    render();
+  })();
+})();
+</script>
+</body>
+</html>
