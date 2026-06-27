@@ -15,11 +15,14 @@
     --isha-top:#1F2438; --isha-mid:#2E3450; --isha-low:#3C4566; --isha-ground:#23283C;
     --fajr-top:#343B5C; --fajr-mid:#67769F; --fajr-low:#C7A3A6; --fajr-ground:#4A4458;
     --dhuhr-top:#CFE0E2; --dhuhr-mid:#EFE8D2; --dhuhr-low:#F6EFDC; --dhuhr-ground:#D8C49A;
-    --lantern:#E8B85C; --sun:#F6E2B4;
+    --lantern:#E8B85C;
 
-    /* Warm sunrise hero treatment — distinct from --fajr-* (which is deliberately cool/pre-dawn).
-       Added for the Kaabah hero's explicit "warm tones / traditional sunrise" requirement. */
-    --sunrise-top:#F3D9B1; --sunrise-mid:#EFAE6E; --sunrise-horizon:#E8835C; --sunrise-glow:#FFF1D6;
+    /* Single "desert + serene" theme. Warm sand tones flow down the page into a
+       calm deep-teal for the closing sections — this replaces the old five
+       prayer-time sky gradients. (The --fajr/--dhuhr/etc. vars below are kept:
+       they still color the functional prayer-window segments inside the planner.) */
+    --sand-1:#F6EFDC; --sand-2:#EFE4CB; --sand-3:#E7D8B8; --sand-4:#E0CFAB;
+    --teal-serene:#1E5F63; --teal-deep:#173F3A; --teal-night:#0F302E;
 
     --paper:#F6EFDC; --paper-deep:#EFE8D2; --clay:#C9A77D; --clay-line:#B89572;
     --ink:#3A3228; --ink-soft:#6B5E4D;
@@ -88,13 +91,18 @@
   .hero{
     min-height:100vh;
     display:flex;
-    align-items:flex-end;
-    background:linear-gradient(180deg, var(--sunrise-top) 0%, var(--sunrise-mid) 75%, var(--sunrise-horizon) 100%);
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap:36px;
+    background:linear-gradient(180deg, var(--sand-1) 0%, var(--sand-2) 100%);
     padding-top:80px;
     padding-bottom:96px;
     color:var(--ink);
   }
   .hero .wrap{ position:relative; z-index:3; text-align:center; margin:0 auto; }
+  .hero-kaabah{ width:clamp(150px, 30vw, 240px); flex-shrink:0; }
+  .hero-kaabah svg{ display:block; width:100%; height:auto; overflow:visible; }
   .hero h1{
     font-size:clamp(1.7rem, 4vw, 2.6rem);
     font-style:italic;
@@ -126,9 +134,9 @@
   .btn-secondary{ background:transparent; border-color:var(--ink); color:var(--ink); }
   .btn-ghost{ background:rgba(255,255,255,.5); border-color:var(--clay-line); color:var(--ink); }
 
-  /* ---------- problem — Dhuhr (bright midday) ---------- */
+  /* ---------- problem — warm sand ---------- */
   .problem{
-    background:linear-gradient(180deg, var(--sunrise-horizon) 0%, var(--dhuhr-top) 38%, var(--dhuhr-mid) 62%, var(--dhuhr-low) 84%, var(--dhuhr-ground) 100%);
+    background:linear-gradient(180deg, var(--sand-2) 0%, var(--sand-3) 100%);
     color:var(--ink);
   }
   .problem h2{ font-size:clamp(1.8rem,4vw,2.6rem); max-width:18ch; color:var(--ink); }
@@ -148,9 +156,9 @@
   .skeleton-card h3{ color:var(--ink); font-size:1.05rem; }
   .skeleton-card p{ color:var(--ink-soft); font-size:.92rem; margin:0; }
 
-  /* ---------- loop — Asr (warm, intensifying gold) ---------- */
+  /* ---------- loop — deeper sand ---------- */
   .loop{
-    background:linear-gradient(180deg, var(--dhuhr-ground) 0%, var(--asr-sky-top) 38%, var(--asr-sky-mid) 62%, var(--asr-sky-low) 84%, var(--asr-ground) 100%);
+    background:linear-gradient(180deg, var(--sand-3) 0%, var(--sand-4) 100%);
     color:var(--ink);
   }
   .loop h2{ color:var(--ink); font-size:clamp(1.8rem,4vw,2.6rem); max-width:16ch; }
@@ -176,9 +184,9 @@
   .loop-step h3{ color:var(--ink); margin-top:10px; font-size:1.2rem; }
   .loop-step p{ color:var(--ink-soft); font-size:.95rem; margin:0; }
 
-  /* ---------- intention — Maghrib (deep sunset) ---------- */
+  /* ---------- intention — serene teal ---------- */
   .intention{
-    background:linear-gradient(180deg, var(--asr-ground) 0%, var(--maghrib-top) 38%, var(--maghrib-mid) 62%, var(--maghrib-low) 84%, var(--maghrib-ground) 100%);
+    background:linear-gradient(180deg, var(--teal-serene) 0%, var(--teal-deep) 100%);
     color:var(--paper);
   }
   .intention h2{ font-size:clamp(1.8rem,4vw,2.6rem); max-width:18ch; color:var(--paper); }
@@ -325,8 +333,8 @@
 
   /* ---------- founding ---------- */
   .founding{
-    background:radial-gradient(ellipse at 80% 20%, rgba(232,184,92,.18), transparent 55%),
-                linear-gradient(180deg, var(--maghrib-ground) 0%, var(--isha-top) 40%, var(--isha-mid) 70%, var(--isha-ground) 100%);
+    background:radial-gradient(ellipse at 80% 20%, rgba(232,184,92,.16), transparent 55%),
+                linear-gradient(180deg, var(--teal-deep) 0%, var(--teal-night) 100%);
     color:var(--paper);
   }
   .founding h2{ color:var(--paper); font-size:clamp(1.8rem,4vw,2.6rem); max-width:16ch; }
@@ -377,7 +385,7 @@
 
   /* ---------- footer ---------- */
   footer{
-    background:var(--isha-ground);
+    background:var(--teal-night);
     color:rgba(246,239,220,.7);
     padding:56px 0 40px;
     font-size:.88rem;
@@ -386,49 +394,6 @@
   footer .promises{ display:flex; gap:24px; flex-wrap:wrap; list-style:none; padding:0; margin:0 0 18px; }
   footer .promises li{ font-size:.85rem; }
   footer .fine-print{ color:rgba(246,239,220,.45); max-width:60ch; }
-
-  /* ---------- scroll-linked Kaabah reminder ---------- */
-  #kaabah-wrap{
-    position:fixed;
-    top:0; left:0;
-    width:160px; height:160px;
-    pointer-events:none;
-    z-index:38;
-    will-change:transform, width, height;
-  }
-  #kaabah-wrap svg{ display:block; width:100%; height:100%; overflow:visible; }
-  #kaabah-wrap .kaabah-halo{ will-change:opacity; }
-  /* Pulse lives on the inner core circle (its own opacity), scroll-fade lives on the
-     .kaabah-halo group (JS sets that opacity directly) — kept separate so the CSS
-     animation and the JS inline style never fight over the same property. */
-  .kaabah-halo-core{ animation:kaabah-pulse 4.5s ease-in-out infinite; transform-origin:124px 128px; }
-  @keyframes kaabah-pulse{ 0%,100%{ opacity:.75; transform:scale(.96); } 50%{ opacity:1; transform:scale(1.04); } }
-  .kaabah-spark{ animation:sun-twinkle 2.8s ease-in-out infinite; transform-origin:150px 38px; }
-  @media (prefers-reduced-motion: reduce){
-    .kaabah-halo-core{ animation:none; }
-    .kaabah-spark{ animation:none; opacity:1; }
-  }
-
-  /* ---------- scroll-linked sun ---------- */
-  #sun-wrap{
-    position:fixed;
-    top:0; left:0;
-    width:100%;
-    height:0;
-    pointer-events:none;
-    z-index:40;
-  }
-  #sun{
-    position:absolute;
-    width:60px; height:60px;
-    will-change:transform, width, height;
-  }
-  #sun svg{ display:block; width:100%; height:100%; overflow:visible; }
-  #sunSpark{ animation:sun-twinkle 2.4s ease-in-out infinite; transform-origin:76px 26px; }
-  @keyframes sun-twinkle{ 0%,100%{ opacity:.65; transform:scale(.85); } 50%{ opacity:1; transform:scale(1); } }
-  @media (prefers-reduced-motion: reduce){
-    #sunSpark{ animation:none; opacity:1; }
-  }
 
   /* ---------- modal ---------- */
   .modal-overlay{
@@ -613,106 +578,6 @@
 </head>
 <body>
 
-<div id="kaabah-wrap" aria-hidden="true">
-  <!-- PLACEHOLDER KAABAH ART: minimal iconic silhouette — a flat/parallel ("isometric-style")
-       cube: top face + two side faces, all parallel edges, no perspective convergence at all.
-       Earlier passes tried a low-angle converging perspective (first too aggressive — read as a
-       pyramid — then toned down) but that whole approach is dropped now in favor of a plain,
-       unambiguous cube read. No calligraphy attempted on the band (illegible fake Arabic would
-       read as a mistake, not a detail) — geometric ornament marks instead. Swap for commissioned
-       art later; keep the no-faces / no-photorealism rule from the rest of the page. -->
-  <svg viewBox="0 0 240 240" role="img" aria-label="The Kaaba, a reminder to return to prayer">
-    <defs>
-      <radialGradient id="kaabahHaloOuter" cx="50%" cy="55%" r="58%">
-        <stop offset="0%" stop-color="#FFF1D6" stop-opacity="0.55"/>
-        <stop offset="100%" stop-color="#FFF1D6" stop-opacity="0"/>
-      </radialGradient>
-      <radialGradient id="kaabahHaloCore" cx="50%" cy="55%" r="30%">
-        <stop offset="0%" stop-color="#FFFBF2" stop-opacity="0.85"/>
-        <stop offset="100%" stop-color="#FFF1D6" stop-opacity="0"/>
-      </radialGradient>
-      <radialGradient id="kaabahShadow" cx="50%" cy="50%" r="50%">
-        <stop offset="0%" stop-color="#000000" stop-opacity="0.35"/>
-        <stop offset="100%" stop-color="#000000" stop-opacity="0"/>
-      </radialGradient>
-      <linearGradient id="kaabahBandFront" x1="0" y1="0" x2="1" y2="0">
-        <stop offset="0%" stop-color="#C99A3A"/>
-        <stop offset="100%" stop-color="#E8C878"/>
-      </linearGradient>
-    </defs>
-
-    <g class="kaabah-halo">
-      <circle cx="124" cy="128" r="145" fill="url(#kaabahHaloOuter)"/>
-      <circle class="kaabah-halo-core" cx="124" cy="128" r="80" fill="url(#kaabahHaloCore)"/>
-    </g>
-
-    <ellipse cx="124" cy="210" rx="78" ry="12" fill="url(#kaabahShadow)"/>
-
-    <!-- top face -->
-    <polygon points="55,82 93,50 193,50 155,82" fill="#34333A"/>
-    <!-- side (right) face, in shadow -->
-    <polygon points="155,82 193,50 193,173 155,205" fill="#100F14"/>
-    <!-- front face -->
-    <rect x="55" y="82" width="100" height="123" fill="#221F26"/>
-
-    <!-- cloth fold texture, parallel to each face's own edges -->
-    <g stroke-width="1" fill="none">
-      <path d="M80,205 L80,82" stroke="#000000" stroke-opacity="0.18"/>
-      <path d="M105,205 L105,82" stroke="#FFFFFF" stroke-opacity="0.08"/>
-      <path d="M130,205 L130,82" stroke="#000000" stroke-opacity="0.16"/>
-      <path d="M168.3,193.8 L168.3,70.8" stroke="#000000" stroke-opacity="0.22"/>
-      <path d="M181.6,182.6 L181.6,59.6" stroke="#000000" stroke-opacity="0.25"/>
-    </g>
-
-    <!-- gold band (hizam) -->
-    <rect x="55" y="110" width="100" height="30" fill="url(#kaabahBandFront)"/>
-    <polygon points="155,110 193,78 193,108 155,140" fill="#9C7327"/>
-    <!-- geometric ornament marks (no calligraphy attempted) -->
-    <g fill="#5C431A" opacity="0.55">
-      <rect x="88" y="118" width="7" height="7" transform="rotate(45 91.5 121.5)"/>
-      <rect x="120" y="118" width="7" height="7" transform="rotate(45 123.5 121.5)"/>
-    </g>
-
-    <rect x="75" y="165" width="30" height="40" fill="#1A1509" stroke="#C99A3A" stroke-width="1.3"/>
-
-    <!-- corner edge highlight, between front and side faces -->
-    <line x1="155" y1="205" x2="155" y2="82" stroke="#F6E2B4" stroke-width="1.4" opacity="0.4"/>
-
-    <path class="kaabah-spark" d="M150,30 L151.6,36.4 L158,38 L151.6,39.6 L150,46 L148.4,39.6 L142,38 L148.4,36.4 Z" fill="#FFF6DE"/>
-  </svg>
-</div>
-<div id="sun-wrap" aria-hidden="true">
-  <div id="sun">
-    <svg viewBox="0 0 100 100" role="img" aria-label="The sun, marking the time of day">
-      <defs>
-        <radialGradient id="sunGlow" cx="50%" cy="50%" r="50%">
-          <stop id="sunGlowStop1" offset="0%" stop-color="#F6E2B4" stop-opacity="0.55"/>
-          <stop id="sunGlowStop2" offset="100%" stop-color="#F6E2B4" stop-opacity="0"/>
-        </radialGradient>
-        <radialGradient id="sunBody" cx="38%" cy="35%" r="68%">
-          <stop id="sunBodyStop1" offset="0%" stop-color="#FFF6DE"/>
-          <stop id="sunBodyStop2" offset="100%" stop-color="#E8B85C"/>
-        </radialGradient>
-        <clipPath id="sunClip"><circle cx="50" cy="50" r="32"/></clipPath>
-      </defs>
-      <circle cx="50" cy="50" r="50" fill="url(#sunGlow)"/>
-      <g id="sunRays" fill="#FFF6DE" opacity="0.55">
-        <path d="M47,18 L53,18 L50,2 Z"/>
-        <path d="M47,18 L53,18 L50,2 Z" transform="rotate(45 50 50)"/>
-        <path d="M47,18 L53,18 L50,2 Z" transform="rotate(90 50 50)"/>
-        <path d="M47,18 L53,18 L50,2 Z" transform="rotate(135 50 50)"/>
-        <path d="M47,18 L53,18 L50,2 Z" transform="rotate(180 50 50)"/>
-        <path d="M47,18 L53,18 L50,2 Z" transform="rotate(225 50 50)"/>
-        <path d="M47,18 L53,18 L50,2 Z" transform="rotate(270 50 50)"/>
-        <path d="M47,18 L53,18 L50,2 Z" transform="rotate(315 50 50)"/>
-      </g>
-      <circle cx="50" cy="50" r="32" fill="url(#sunBody)"/>
-      <circle cx="58" cy="58" r="30" fill="#000000" opacity="0.14" clip-path="url(#sunClip)"/>
-      <path id="sunSpark" d="M76,18 L77.56,24.44 L84,26 L77.56,27.56 L76,34 L74.44,27.56 L68,26 L74.44,24.44 Z" fill="#FFF6DE"/>
-    </svg>
-  </div>
-</div>
-
 <header class="masthead">
   <span class="wordmark">BRAND_NAME — Lantern <span style="font-weight:400;font-size:.7em;color:var(--ink-soft)">(placeholder)</span></span>
   <span class="tagline">Reorient your day around salah — not the other way around.</span>
@@ -720,9 +585,82 @@
 
 <main>
 
-  <!-- HERO — Fajr / sunrise. Visual focus is the fixed #kaabah-wrap element (see body top),
-       which sits large and centered here, then shrinks to a top-right dock as the user scrolls. -->
+  <!-- HERO. Visual focus is the static Kaaba below — a stylized 3D cube (black kiswah,
+       gold hizam band with ornaments, gold door, white band, stone base) matching the
+       reference icon. It sits centered above the headline and scrolls away with the hero;
+       no scroll-driven size or position animation. Swap for commissioned art later;
+       keep the no-faces / no-photorealism rule from the rest of the page. -->
   <section class="hero" data-light-band="fajr" id="hero">
+    <div class="hero-kaabah" aria-hidden="true">
+      <svg viewBox="0 0 240 240" role="img" aria-label="The Kaaba, a reminder to return to prayer">
+        <defs>
+          <linearGradient id="kaabahBand" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%" stop-color="#C99A3A"/>
+            <stop offset="100%" stop-color="#E8C878"/>
+          </linearGradient>
+          <linearGradient id="kaabahDoor" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#EBCB7C"/>
+            <stop offset="100%" stop-color="#B9842B"/>
+          </linearGradient>
+          <radialGradient id="kaabahShadow" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stop-color="#000000" stop-opacity="0.28"/>
+            <stop offset="100%" stop-color="#000000" stop-opacity="0"/>
+          </radialGradient>
+        </defs>
+
+        <!-- soft ground shadow -->
+        <ellipse cx="130" cy="196" rx="74" ry="11" fill="url(#kaabahShadow)"/>
+
+        <!-- ===== cube faces ===== -->
+        <!-- top face (lit) -->
+        <polygon points="68,80 102,53 192,53 158,80" fill="#3B3A42"/>
+        <!-- right face (shadow side) -->
+        <polygon points="158,80 192,53 192,159 158,186" fill="#15131A"/>
+        <!-- front face (kiswah) -->
+        <rect x="68" y="80" width="90" height="106" fill="#232026"/>
+
+        <!-- ===== gold band (hizam) ===== -->
+        <rect x="68" y="104" width="90" height="20" fill="url(#kaabahBand)"/>
+        <polygon points="158,104 192,77 192,97 158,124" fill="#9C7327"/>
+        <!-- band ornaments: cream florets + dark studs (geometric, no calligraphy) -->
+        <g>
+          <g fill="#F6E2B4">
+            <rect x="78" y="110" width="8" height="8" transform="rotate(45 82 114)"/>
+            <rect x="100" y="110" width="8" height="8" transform="rotate(45 104 114)"/>
+            <rect x="122" y="110" width="8" height="8" transform="rotate(45 126 114)"/>
+          </g>
+          <g fill="#5C431A" opacity="0.7">
+            <circle cx="93" cy="114" r="2.1"/>
+            <circle cx="115" cy="114" r="2.1"/>
+            <circle cx="137" cy="114" r="2.1"/>
+          </g>
+        </g>
+
+        <!-- ===== door (rounded top) ===== -->
+        <path d="M116,164 L116,138 Q116,126 128,126 Q140,126 140,138 L140,164 Z" fill="url(#kaabahDoor)" stroke="#8C631E" stroke-width="1.1"/>
+        <path d="M128,128 L128,164" stroke="#8C631E" stroke-width="0.9" opacity="0.6"/>
+
+        <!-- ===== white kiswah band ===== -->
+        <rect x="68" y="164" width="90" height="12" fill="#F1EAD8"/>
+        <polygon points="158,164 192,137 192,149 158,176" fill="#D9CDB3"/>
+
+        <!-- ===== stone / brick base ===== -->
+        <rect x="68" y="176" width="90" height="10" fill="#9C5B39"/>
+        <polygon points="158,176 192,149 192,159 158,186" fill="#6F4129"/>
+        <g stroke="#5E3621" stroke-width="0.8" opacity="0.55">
+          <line x1="68" y1="181" x2="158" y2="181"/>
+          <line x1="83" y1="176" x2="83" y2="181"/>
+          <line x1="113" y1="176" x2="113" y2="181"/>
+          <line x1="143" y1="176" x2="143" y2="181"/>
+          <line x1="98" y1="181" x2="98" y2="186"/>
+          <line x1="128" y1="181" x2="128" y2="186"/>
+        </g>
+
+        <!-- ===== edge highlights for soft 3D read ===== -->
+        <line x1="158" y1="80" x2="158" y2="186" stroke="#F6E2B4" stroke-width="1.2" opacity="0.18"/>
+        <line x1="68" y1="80" x2="158" y2="80" stroke="#FFFFFF" stroke-width="1" opacity="0.1"/>
+      </svg>
+    </div>
     <div class="wrap">
       <h1>"Indeed, prayer has been decreed upon the believers a decree of specified times."</h1>
       <p class="verse-citation">Qur'an, An-Nisa 4:103 — Sahih International</p>
@@ -841,7 +779,7 @@
     </div>
   </section>
 
-  <!-- FOUNDING — Isha / lantern -->
+  <!-- FOUNDING — serene deep teal, gold stars -->
   <section class="founding" data-light-band="isha" id="founding">
     <svg class="star-field" viewBox="0 0 1000 700" preserveAspectRatio="none" aria-hidden="true">
       <g fill="#FFF6DE">
@@ -968,178 +906,6 @@
 (function(){
   "use strict";
   var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-
-  /* =========================================================
-     SCROLL-LINKED SUN — full Fajr -> Dhuhr -> Asr -> Maghrib -> Isha cycle.
-     Starts low in the bottom-left (sunrise), rises to a zenith around
-     Dhuhr, then descends back down toward sunset/night by Isha. Position
-     is driven entirely by peakFrac (a fraction of viewport height) per
-     band, smoothly interpolated — no separate wobble/arc layer, so this
-     stays a direct 1:1 function of scroll position throughout.
-     ========================================================= */
-  (function(){
-    var sun = document.getElementById("sun");
-    var rays = document.getElementById("sunRays");
-    var glowStop1 = document.getElementById("sunGlowStop1");
-    var glowStop2 = document.getElementById("sunGlowStop2");
-    var bodyStop1 = document.getElementById("sunBodyStop1");
-    var bodyStop2 = document.getElementById("sunBodyStop2");
-    var bands = Array.prototype.slice.call(document.querySelectorAll("[data-light-band]"));
-    var hero = document.getElementById("hero");
-
-    var KEYFRAMES = {
-      fajr:    { color: "#EFAE6E", glow: "#FFF1D6", highlight: "#FFFBF2", r: 22, peakFrac: 0.82 },
-      dhuhr:   { color: "#F6E2B4", glow: "#FFFBEF", highlight: "#FFFFFF", r: 34, peakFrac: 0.10 },
-      asr:     { color: "#E8B85C", glow: "#F6E2B4", highlight: "#FFF6DE", r: 30, peakFrac: 0.20 },
-      maghrib: { color: "#D9764A", glow: "#E8A36C", highlight: "#F6C99A", r: 24, peakFrac: 0.50 },
-      isha:    { color: "#E8B85C", glow: "#E8B85C", highlight: "#F6E2B4", r: 11, peakFrac: 0.70 }
-    };
-    var ORDER = ["fajr", "dhuhr", "asr", "maghrib", "isha"];
-
-    function lerp(a, b, t){ return a + (b - a) * t; }
-    function hexToRgb(hex){
-      var n = parseInt(hex.slice(1), 16);
-      return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
-    }
-    function rgbToHex(rgb){
-      return "#" + rgb.map(function(v){ return Math.round(v).toString(16).padStart(2,"0"); }).join("");
-    }
-    function lerpColor(c1, c2, t){
-      var a = hexToRgb(c1), b = hexToRgb(c2);
-      return rgbToHex([lerp(a[0],b[0],t), lerp(a[1],b[1],t), lerp(a[2],b[2],t)]);
-    }
-
-    var ticking = false;
-
-    function findActiveBand(){
-      var vh = window.innerHeight;
-      var center = vh * 0.4;
-      var active = bands[0];
-      var t = 0;
-      for (var i = 0; i < bands.length; i++){
-        var rect = bands[i].getBoundingClientRect();
-        if (rect.top <= center && rect.bottom >= center){
-          active = bands[i];
-          t = rect.height > 0 ? (center - rect.top) / rect.height : 0;
-          break;
-        }
-        if (rect.top > center){ break; }
-        active = bands[i];
-        t = 1;
-      }
-      return { band: active.dataset.lightBand, t: Math.max(0, Math.min(1, t)) };
-    }
-
-    function render(){
-      ticking = false;
-      // Sun stays put until the page scrolls past the hero into the first
-      // cross-section gradient — then its full journey plays out across the
-      // remaining scroll distance.
-      var heroHeight = hero.offsetHeight;
-      var scrollH = document.documentElement.scrollHeight - window.innerHeight;
-      var travel = scrollH - heroHeight;
-      var g = travel > 0 ? (window.scrollY - heroHeight) / travel : 0;
-      g = Math.max(0, Math.min(1, g));
-
-      // Stay pinned to fajr's exact starting values for the whole hero, rather
-      // than letting localT drift while still in the hero's own section bounds.
-      var info = window.scrollY <= heroHeight ? { band: "fajr", t: 0 } : findActiveBand();
-      var idx = ORDER.indexOf(info.band);
-      if (idx === -1) idx = 0;
-      var kf1 = KEYFRAMES[ORDER[idx]];
-      var kf2 = KEYFRAMES[ORDER[Math.min(idx + 1, ORDER.length - 1)]];
-      var localT = idx === ORDER.length - 1 ? 0 : info.t;
-
-      var color = lerpColor(kf1.color, kf2.color, localT);
-      var glow = lerpColor(kf1.glow, kf2.glow, localT);
-      var highlight = lerpColor(kf1.highlight, kf2.highlight, localT);
-      var r = lerp(kf1.r, kf2.r, localT);
-      var peakFrac = lerp(kf1.peakFrac, kf2.peakFrac, localT);
-
-      var x = g * window.innerWidth;
-      var y = peakFrac * window.innerHeight;
-
-      sun.style.transform = "translate(" + (x - r) + "px," + y + "px)";
-      sun.style.width = (r * 2) + "px";
-      sun.style.height = (r * 2) + "px";
-
-      glowStop1.setAttribute("stop-color", glow);
-      glowStop2.setAttribute("stop-color", glow);
-      bodyStop1.setAttribute("stop-color", highlight);
-      bodyStop2.setAttribute("stop-color", color);
-      rays.setAttribute("fill", glow);
-    }
-
-    function onScroll(){
-      if (!ticking){
-        ticking = true;
-        requestAnimationFrame(render);
-      }
-    }
-
-    window.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("resize", onScroll);
-    render();
-  })();
-
-  /* =========================================================
-     SCROLL-LINKED KAABAH — large and centered at the top of the
-     hero, shrinks and moves to a permanent top-right dock as the
-     user scrolls past the hero. Purely decorative once docked.
-     Headline text is visible from the start — sizing/position below
-     keep it clear of the art rather than hiding text to dodge overlap.
-     ========================================================= */
-  (function(){
-    var wrap = document.getElementById("kaabah-wrap");
-    var halo = wrap.querySelector(".kaabah-halo");
-    var hero = document.getElementById("hero");
-
-    function lerp(a, b, t){ return a + (b - a) * t; }
-    function ease(t){ return t < 0.5 ? 4*t*t*t : 1 - Math.pow(-2*t + 2, 3) / 2; }
-    function clamp01(t){ return Math.max(0, Math.min(1, t)); }
-
-    var ticking = false;
-
-    function render(){
-      ticking = false;
-      var vw = window.innerWidth, vh = window.innerHeight;
-      var heroHeight = hero.offsetHeight;
-      var progress = heroHeight > 0 ? window.scrollY / heroHeight : 1;
-      progress = clamp01(progress);
-      var t = ease(progress);
-
-      // SVG viewBox is 240x240 (square — it's a cube).
-      var ASPECT = 240 / 240;
-      var size0 = Math.min(360, vw * 0.46, vh * 0.6);
-      var x0 = vw / 2;
-      var y0 = vh * 0.48;
-
-      var size1 = 52;
-      var x1 = vw - 46;
-      var y1 = 46;
-
-      var size = lerp(size0, size1, t);
-      var x = lerp(x0, x1, t);
-      var y = lerp(y0, y1, t);
-      var height = size * ASPECT;
-
-      wrap.style.transform = "translate(" + (x - size / 2) + "px," + (y - height / 2) + "px)";
-      wrap.style.width = size + "px";
-      wrap.style.height = height + "px";
-      halo.style.opacity = lerp(0.85, 0.35, progress);
-    }
-
-    function onScroll(){
-      if (!ticking){
-        ticking = true;
-        requestAnimationFrame(render);
-      }
-    }
-
-    window.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("resize", onScroll);
-    render();
-  })();
 
   /* =========================================================
      INTENTION DEMO — scripted autoplay teaser (decorative).
